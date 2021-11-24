@@ -1,0 +1,10 @@
+charset,UTF-8
+type,plugin
+name,うかどんゅう
+id,ba24f930-4b68-11ec-8072-0800200c9a66
+filename,akari.dll
+craftman,Don
+craftmanurl,http://nikolat.starfree.jp/ukadonyu/
+homeurl,https://raw.githubusercontent.com/nikolat/ukadonyu/main/
+secondchangeinterval,0
+readme.charset,UTF-8

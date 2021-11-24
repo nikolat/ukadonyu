@@ -1,0 +1,477 @@
+//******************************************************************************
+// メニュー用選択肢関連
+//******************************************************************************
+//------------------------------------------------------------------------------
+// 通常メニュー
+string menuItem(string title, array arId, int linefeed)
+{
+	string lftext;
+	while (linefeed > 0) {
+		if (linefeed >= 100) {
+			lftext += "\n";
+		}
+		else {
+			lftext += "\n[half]";
+		}
+		linefeed -= 100;
+	}
+	string ret;
+	ret += lftext;
+	ret += "\![*]";
+	ret += "\__q[";
+	string s;
+	int n = _aryvn(arId);
+	for (int i = 0; i < n - 1 ; i++) {
+		s += escapeText(arId[i]) + ",";
+	}
+	s += escapeText(arId[n - 1]);
+	ret += s;
+	ret += "]";
+	int numwords = 46;
+	if (balloonWidth >= 100) {
+		numwords = _floor(balloonWidth / 6.14);
+	}
+	string r = makeJustText(title, numwords);
+	ret += r;
+	ret += "\__q";
+	return ret;
+}
+//------------------------------------------------------------------------------
+// タイムライン（ユーザ名）用
+string menuUserName(string title, array arId)
+{
+	string ret;
+	ret += "\__q[";
+	string s;
+	int n = _aryvn(arId);
+	for (int i = 0; i < n - 1; i++) {
+		s += escapeText(arId[i]) + ",";
+	}
+	s += escapeText(arId[n - 1]);
+	ret += s;
+	ret += "]";
+	int numwords = 46;
+	if (balloonWidth >= 100) {
+		numwords = _floor(balloonWidth / 7.8);
+	}
+	string r = makeJustText(title, numwords);
+	r = escapeAllTags(r);
+	array arEmoji = _dickeyget(dEmojiPath);
+	r = _regex_replace(r, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+	ret += "\f[bold,true]" + r + "\f[bold,false]";
+	ret += "\__q";
+	return ret;
+}
+//------------------------------------------------------------------------------
+// 後ろにスペースを補完する関数
+string makeLongText(string menuitem, int numwords)
+{
+	int len = numwords - getstrbytes(menuitem);
+
+	if (len <= 0) {
+		return menuitem;
+	}
+	string space;
+	for (int i = 0; i < 50; i++) {
+		space += "　";
+	}
+	menuitem += _substr(space, 0, len / 2);
+	
+	if (len % 2 > 0) {
+		menuitem += " ";
+	}
+	return menuitem;
+}
+//------------------------------------------------------------------------------
+// 適当な長さで切る
+string makeShortText(string menuitem, int numwords)
+{
+	int num = numwords / 2;
+	int len = _strlen(menuitem);
+	string text;
+	
+	if (num >= len) {
+		return menuitem;
+	}
+	
+	int lendiff;
+	while (1) {
+		text = _substr(menuitem, 0, num);
+		
+		lendiff = getstrbytes(text) - numwords + 1;
+		if (lendiff >= 0) {
+			break;
+		}
+		num += 1;
+		if (num >= len) {
+			break;
+		}
+	}
+	
+	if (num >= len) {
+		return menuitem;
+	}
+	else {
+		text = _substr(menuitem, 0, num - 1);
+		if (lendiff > 0) {
+			text += "..";
+		}
+		else {
+			text += "...";
+		}
+		return text;
+	}
+}
+//------------------------------------------------------------------------------
+// 長さをきっちり調節
+string makeJustText(string menuitem, int numwords)
+{
+	string text = makeLongText(menuitem, numwords);
+	if (text != menuitem) {
+		return text;
+	}
+	
+	text = makeShortText(menuitem, numwords);
+	return text;
+}
+//------------------------------------------------------------------------------
+// 関数名：getstrbytes
+// 機能　：文字列を格納するために必要なバイト数を返す
+// 引数　：s 文字列
+// 戻り値：バイト数
+//------------------------------------------------------------------------------
+int getstrbytes(string s)
+{
+	return _strlen(_regex_replace(s, "[^\\x01-\\x7E]", "  "));
+}
+//******************************************************************************
+// 汎用関数
+//******************************************************************************
+//------------------------------------------------------------------------------
+// 関数名：showErrorMessage
+// 機能　：エラーメッセージをタスクトレイバルーンで表示する
+// 引数　：title タイトル
+// 引数　：text テキスト
+// 引数　：icon アイコン
+// 戻り値：エラーメッセージを表示するSakuraScript
+//------------------------------------------------------------------------------
+string showErrorMessage(string title, string text, string icon)
+{
+	if (title == "")
+		title = "error";
+	if (text == "")
+		text = "error";
+	if (icon == "")
+		text = "info";
+	return "\![set,trayballoon,--icon=" + icon + ",--timeout=30,--title=" + title + ",--text=" + text + "]";
+}
+//------------------------------------------------------------------------------
+// 関数名：fillSpace
+// 機能　：3桁以下の数値を半角スペースを加えて3文字の文字列にして返す
+// 引数　：n 3文字の文字列にしたい数値
+// 戻り値：3文字の文字列
+//------------------------------------------------------------------------------
+string fillSpace(int n)
+{
+	string s;
+	if (n < 10) {
+		s += "  ";
+	} else if (n < 100) {
+		s += " ";
+	}
+	return s + n;
+}
+//------------------------------------------------------------------------------
+// 関数名：escapeText
+// 機能　：対象文字列を\__q[...]等に入れられるようエスケープ(""で囲う)する
+// 引数　：s エスケープしたい文字列
+// 戻り値：エスケープされた文字列
+//------------------------------------------------------------------------------
+string escapeText(string s)
+{
+	if (_regex_match(s, "^.*[\"\\[\\],].*$")) {
+		return "\"" + _strreplace(s, "\"", "\"\"") + "\"";
+	}
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：escapeAllTags
+// 機能　：全てのさくらスクリプトタグをエスケープ（\付加）する
+// 引数　：s エスケープしたい文字列
+// 戻り値：エスケープされた文字列
+//------------------------------------------------------------------------------
+string escapeAllTags(string s)
+{
+	string ESCAPE_TAG_1 = _bytechar(3) + _bytechar(3);
+	string ESCAPE_TAG_2 = _bytechar(4) + _bytechar(4);
+	s = _strreplace(s, "\\\\", ESCAPE_TAG_1);
+	s = _strreplace(s, "\\%", ESCAPE_TAG_2);
+	s = _strreplace(s, "\\", "\\\\");
+	s = _strreplace(s, "%", "\\%");
+	s = _strreplace(s, ESCAPE_TAG_2, "\\%");
+	s = _strreplace(s, ESCAPE_TAG_1, "\\\\");
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：convertHtml
+// 機能　：実態参照変換
+// 引数　：s 変換したい文字列
+// 戻り値：変換された文字列
+//------------------------------------------------------------------------------
+string convertHtml(string s)
+{
+	s = _strreplace(s, "&lt;"  , "<");
+	s = _strreplace(s, "&gt;"  , ">");
+	s = _strreplace(s, "&quot;", "\"");
+	s = _strreplace(s, "&#92;" , "\\");
+	s = _strreplace(s, "&amp;" , "&");
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：convertUnicode
+// 機能　：Unicode変換
+// 引数　：text 変換する文字列
+// 戻り値：変換された文字列
+//------------------------------------------------------------------------------
+string convertUnicode(string text)
+{
+	dict dictText;
+	int i = 1;
+	for(;;)
+	{
+		array a = _regex_search(text, "\\\\u([0-9a-f]{4})", i);
+		string s = a[0];
+		if (s == "")
+			break;
+		if (dictText[s] == nil)
+		{
+			dictText += $(s, _bytechar(hexstrtoi(a[1])));
+		}
+		i++;
+	}
+	array keys = _dickeyget(dictText);
+	int n = _aryvn(keys);
+	for (int i = 0; i < n; i++)
+	{
+		text = _strreplace(text, keys[i], dictText[keys[i]]);
+	}
+	return text;
+}
+//------------------------------------------------------------------------------
+// 関数名：hexstrtoi
+// 機能　：16進数を10進数に変換する
+// 引数　：s 変換する文字列
+// 戻り値：変換された数値
+//------------------------------------------------------------------------------
+long hexstrtoi(string s)
+{
+	array a = _strary(s);
+	long ret = 0;
+	long b = 1;
+	for (int i = _aryvn(a) - 1; i >= 0; i--)
+	{
+		int n;
+		switch (a[i])
+		{
+		  case "a":
+			n = 10;
+			break;
+		  case "b":
+			n = 11;
+			break;
+		  case "c":
+			n = 12;
+			break;
+		  case "d":
+			n = 13;
+			break;
+		  case "e":
+			n = 14;
+			break;
+		  case "f":
+			n = 15;
+			break;
+		  default:
+			n = a[i];
+			break;
+		}
+		ret += b * n;
+		b = 16 * b;
+	}
+	return ret;
+}
+//------------------------------------------------------------------------------
+// 関数名：append
+// 機能　：配列を合成する
+// 引数　：a1 合成される配列
+// 引数　：a2 合成する配列
+// 戻り値：合成された配列
+//------------------------------------------------------------------------------
+append(array a1, array a2)
+{
+	for (int i = 0; a2[i] != nil; i++)
+	{
+		a1 += a2[i];
+	}
+	return a1;
+}
+//------------------------------------------------------------------------------
+// 関数名：JOIN
+// 機能　：配列の各要素をデリミタで繋いだ文字列を返す
+// 引数　：a 配列
+// 引数　：delim デリミタ
+// 戻り値：繋いだ文字列
+//------------------------------------------------------------------------------
+string JOIN(array a, string delim)
+{
+	if (_aryvn(a) < 1)
+		return "";
+	if (_aryvn(a) < 2)
+		return a[0];
+	string s = a[0];
+	for (int i = 1; a[i] != nil; i++)
+	{
+		s += delim + a[i];
+	}
+	return s;
+}
+//******************************************************************************
+// SAORI関連
+//******************************************************************************
+//------------------------------------------------------------------------------
+// 関数名：getBalloonWidth
+// 機能　：\0のバルーン幅サイズ取得（※直前に\0のballoonを\b[2]にしておくこと）
+// 引数　：strHwnd バルーン幅を取得したいghostのhwnd（省略時、PLUGIN実行者hwnd）
+// 戻り値：バルーンの幅（失敗したら-1）
+//------------------------------------------------------------------------------
+int getBalloonWidth(string strHwnd)
+{
+	int width = -1;
+	if (strHwnd == "")
+		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
+	string id = "hand";
+	_saoriload("saori\HandUtil\HandUtil.dll", id);
+	// プロパティシステムにアクセス
+	dict d = _saorirequest(
+		id
+		,"DSSTPSend"
+		,strHwnd
+		,"result"
+		,"EXECUTE SSTP/1.1"
+		,"Charset: Shift_JIS"
+		,"Sender: HandUtil"
+		,"Command: GetProperty[currentghost.balloon.scope(0).validwidth]"
+	);
+	if (_strstr(d["Value0"], "SSTP/1.1 200") >= 0)
+		width = d["Value1"];
+	_saoriunload(id);
+	return width;
+}
+//------------------------------------------------------------------------------
+// 関数名：speakBySSTP
+// 機能　：SSTPによりSakuraScriptを再生する
+// 引数　：script 再生したいSakuraScript
+// 引数　：strHwnd SakuraScriptを再生したいghostのhwnd（省略時、PLUGIN実行者hwnd）
+// 引数　：strOwnedSSTPid SakuraScriptを再生したいghostのID（省略時、PLUGIN実行者ID）
+//------------------------------------------------------------------------------
+speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
+{
+	if (strHwnd == "")
+		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
+	if (strOwnedSSTPid == "")
+		strOwnedSSTPid = ownedSSTPid;	// グローバル変数：PLUGIN実行者ID
+	string id = "hand";
+	_saoriload("saori\HandUtil\HandUtil.dll", id);
+	// SakuraScriptの再生
+	dict d = _saorirequest(
+		id
+		,"DSSTPSend"
+		,strHwnd
+		,"result"
+		,"NOTIFY SSTP/1.1"
+		,"Charset: Shift_JIS"
+		,"Sender: HandUtil"
+		,"Event: On" + pluginnameen() + "SSTP"
+		,"Script: " + script
+		,"Option: notranslate"
+		,"ID: " + strOwnedSSTPid
+	);
+	_saoriunload(id);
+}
+//------------------------------------------------------------------------------
+// 関数名：isImageFile
+// 機能　：指定したファイルが画像ファイルかどうか調べる
+// 引数　：imagePath 調べたいファイルの絶対パス
+// 戻り値：BITMAP, JPEG, PNG, GIFなら1 違ったら0
+//------------------------------------------------------------------------------
+int isImageFile(string imagePath)
+{
+	string id = "img";
+	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
+	string filetype = _saorirequest(id, "GetImageType", imagePath)["Result"];
+	_saoriunload(id);
+	string acceptRegexp = "BITMAP|JPEG|PNG|GIF";
+	return _regex_match(filetype, acceptRegexp);
+}
+//------------------------------------------------------------------------------
+// 関数名：resizeImage
+// 機能　：アイコンのサイズ変更後、PNG形式で保存
+// 引数　：pathBefore リサイズ前の画像ファイルの絶対パス
+// 引数　：pathAfter リサイズ後の画像ファイルの絶対パス
+// 引数　：width リサイズ後の幅
+// 引数　：height リサイズ後の高さ
+//------------------------------------------------------------------------------
+resizeImage(string pathBefore, string pathAfter, int width, int height)
+{
+	string id = "img";
+	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
+	long i = _saorirequest(id, "ToDIB", pathBefore)["Result"];
+	_saorirequest(id, "ResizeDIB", i, width, height);
+	_saorirequest(id, "DIBtoPNG", pathAfter, i, 0);
+	_saorirequest(id, "DeleteDIB", i);
+	_saoriunload(id);
+}
+//------------------------------------------------------------------------------
+// 関数名：textCopy2
+// 機能　：クリップボードにコピー
+// 引数　：text コピーしたいテキスト
+//------------------------------------------------------------------------------
+textCopy2(string text)
+{
+	string id = "textcopy2";
+	_saoriload("saori\textcopy2\textcopy2.dll", id);
+	_saorirequest(id, text);
+	_saoriunload(id);
+}
+//******************************************************************************
+// GHOSTから利用する関数
+//******************************************************************************
+//------------------------------------------------------------------------------
+// イベント：OnUkadonyuAPI
+// 内容　　：GHOSTから要求されたPLUGIN内関数の使用を補助する
+// 　　　　　"Reference"でなく引数を受ける関数も利用できるようにしたもの
+//------------------------------------------------------------------------------
+string OnUkadonyuAPI(dict ref)
+{
+	string functionName = ref["Reference0"];
+	array arg;
+	for (int i = 1; ref["Reference" + i] != nil; i++)
+	{
+		arg += ref["Reference" + i];
+	}
+	array r;
+	r += _fncstr(functionName,
+		arg[0], arg[1], arg[2], arg[3], arg[4],
+		arg[5], arg[6], arg[7], arg[8], arg[9]);
+	if (_gettype(r[0]) == "string")
+		return r[0];
+	return "";
+}
+/**
+ * 使用例
+ * \![raiseplugin,うかどんゅう,OnUkadonyuAPI,echo,"\0Hello, Ukadon!\e"]
+ */
+string echo(string s)
+{
+	return s;
+}

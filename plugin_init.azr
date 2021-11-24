@@ -1,0 +1,286 @@
+//******************************************************************************
+// グローバル変数
+//******************************************************************************
+string sender;
+string hwnd;
+string ownedSSTPid;
+string selfName;
+string selfScreenName;
+int balloonWidth;
+array arHome;
+array arHomeNext;
+array arMentions;
+array arMentionsNext;
+array arLikes;
+string sHome;
+string sMentions;
+string sLikes;
+string sMessages;
+dict dUsers;
+dict dIconPath;
+dict dEmojiPath;
+string postidToReply;
+string reservedScript;
+int isInit;
+//******************************************************************************
+// プラグイン初期化処理
+//******************************************************************************
+loadPlugin()
+{
+	// reservedScriptを設定してOnGhostBootでnotifypluginを実行
+	// sender, hwnd, ownedSSTPidを取得して後続のDSSTPを実行できるようにする
+	isInit = 1;
+	reservedScript = "\C\![notifyplugin," + pluginname() + ",OnMenuExec]\e";
+}
+TH_LoadPlugin()
+{
+	// 定期Toot取得タイマセット
+	string s = setTimerraise();
+	if (s != "")
+	{
+		speakBySSTP("\C" + s + "\e");
+		_sleep(1);
+	}
+	// 認証
+	TH_VerifyAccount();
+	_sleep(1);
+	// Toot全取得
+	TH_GetAllToots();
+	_sleep(1);
+	// PLUGINの更新を確認
+	TH_CheckUpdatePlugin();
+}
+//------------------------------------------------------------------------------
+// PLUGINの更新を確認
+TH_CheckUpdatePlugin()
+{
+	string url = homeurl() + "readme.txt";
+	array arJson = _httpget(url, "utf8");
+	string versionNext;
+	string reg = "^.*[0-9]+-[0-9]+-[0-9]+  Ver([0-9]\.[0-9])  .*$";
+	for (int i = 0; i < _aryvn(arJson); i++)
+	{
+		if (_regex_match(arJson[i], reg))
+			versionNext = _regex_search(arJson[i], reg)[1];
+	}
+	string versionNow = _strsplit(version(), "/")[1];
+	if ((0.5 * versionNow) < (0.5 * versionNext))
+	{
+		speakBySSTP("\C\![raiseplugin," + pluginname() + ",OnShowPopUpUpdate," + versionNext + "]\e");
+	}
+}
+string OnShowPopUpUpdate(dict ref)
+{
+	string versionNext = ref["Reference0"];
+	string title = pluginname() + " 更新通知";
+	string mes = pluginnameen() + "/" + versionNext + "がリリースされています";
+	string s = showErrorMessage(title, mes, "info") + "\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+string openUpdateMenu()
+{
+	string s;
+	s += "\_l[0,0]■" + pluginnameen() + " update menu\_l[0,30]";
+	s += menuItem("配布ページをブラウザで開く",
+		{"UpdatePlugin", "OpenURL"}, 0);
+	s += menuItem("プラグインエクスプローラを開く",
+		{"UpdatePlugin", "OpenPluginExplorer"}, 100);
+	s += menuItem("キャンセル",
+		{"Menu_CANCEL"}, 200);
+	s  = "\0\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：UpdatePlugin
+// 内容　：プラグイン更新関連処理実行
+//-------------------------------------------------------
+string UpdatePlugin(dict ref)
+{
+	string s;
+	switch (ref["Reference2"])
+	{
+	  case "OpenURL":
+		s = "\C\0\_q \_q\![open,browser," + craftmanurl() + "]\e";
+		break;
+	  case "OpenPluginExplorer":
+		s = "\C\0\_q \_q\![open,pluginexplorer]\e";
+		break;
+	  default:
+		break;
+	}
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//******************************************************************************
+// プラグイン後始末処理
+//******************************************************************************
+unloadPlugin()
+{
+	// アイコンファイル削除
+	array a = _fenum("icon")["file"];
+	for (int i = 0; a[i] != nil; i++)
+	{
+		if (_regex_match(a[i], "^(icon|emoji)_.*\.png$"))
+			_fdelete("icon\\" + a[i]);
+	}
+}
+//******************************************************************************
+// PLUGIN Event
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢
+//-------------------------------------------------------
+string OnChoiceSelect(dict ref)
+{
+	return _fncstr(ref["Reference0"], ref);
+}
+string OnChoiceSelectEx(dict ref)
+{
+	return _fncstr(ref["Reference1"], ref);
+}
+//-------------------------------------------------------
+// アンカー
+//-------------------------------------------------------
+string OnAnchorSelect(dict ref)
+{
+	string id = ref["Reference0"];
+	string regurl = "^(https?://|www\.)[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$";
+	if (_regex_match(id, regurl)) {
+		if (_regex_match(id, "^www\..+$")) {
+			id = "http://" + id;
+		}
+		string url = escapeText(id);
+		return "\C\![open,browser," + url + "]\_l[0,0]\_q \_q\e";
+	} else {
+		return _fncstr(id, ref);
+	}
+}
+//-------------------------------------------------------
+// ユーザ入力
+//-------------------------------------------------------
+string OnUserInput(dict ref)
+{
+	return _fncstr("Input" + ref["Reference0"], ref);
+}
+//-------------------------------------------------------
+// イベント：OnExecuteHTTPComplete
+// 内容　　：\![execute,http-post]成功
+//-------------------------------------------------------
+string OnExecuteHTTPComplete(dict ref)
+{
+	if (ref["Reference0"] != "post")
+		return "";
+	string s;
+	switch (ref["Reference1"])
+	{
+	  case "MastodonPost":
+		_create_thread("TH_UpdateHome");
+		s = "\![set,balloontimeout,0]\0\b[2]\_q■updating...\_q\e";
+		break;
+	  case "MastodonAddStar":
+		// 本来、保存してあるログを精査してfavのON/OFFを切り替える作業が入る
+		// が、面倒なので全入れ替え
+		_create_thread("TH_UpdateAll");
+		s = "\![set,balloontimeout,0]\0\b[2]\_q■updating...\_q\e";
+		break;
+	  default:
+		break;
+	}
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// イベント：OnExecuteHTTPFailure
+// 内容　　：\![execute,http-post]失敗
+//-------------------------------------------------------
+string OnExecuteHTTPFailure(dict ref)
+{
+	if (ref["Reference0"] != "post")
+		return "";
+	string s = showErrorMessage(pluginname(), "failed to update post.", "warning") + "\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// イベント：OnTrayBalloonClick
+//-------------------------------------------------------
+string OnTrayBalloonClick(dict ref)
+{
+	string title = ref["Reference0"];
+	string s;
+	if (_strstr(title, pluginname() + " 新着") >= 0)
+	{
+		if (balloonWidth < 100)
+			return "\![raiseplugin," + pluginname() + ",OnMenuExec]\e";
+		else
+			return showHomeTL();
+	}
+	if (_strstr(title, pluginname() + " 更新通知") >= 0)
+	{
+		return openUpdateMenu();
+	}
+	return "";
+}
+//-------------------------------------------------------
+// イベント：OnGhostBoot(load時のみ予約Scriptを再生するために使用)
+//-------------------------------------------------------
+string OnGhostBoot(dict ref)
+{
+	if (reservedScript != "")
+	{
+		string s = reservedScript;
+		reservedScript = "";
+		dictOptionalHeader["script_option"] = "nobreak,notranslate";
+		dictOptionalHeader["marker"] = version();
+		return s;
+	}
+	return "";
+}
+//******************************************************************************
+// 固有設定
+//******************************************************************************
+string getPluginOAuthURL()
+{
+	return "http://nikolat.starfree.jp/ukadonyu/";
+}
+string craftmanurl()
+{
+	return "http://nikolat.starfree.jp/ukadonyu/";
+}
+string homeurl()
+{
+	return "https://raw.githubusercontent.com/nikolat/ukadonyu/main/";
+}
+string pluginnameen()
+{
+	return "ukadonyu";
+}
+string pluginname()
+{
+	return "うかどんゅう";
+}
+string version()
+{
+	return "ukadonyu/1.0";
+}

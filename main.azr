@@ -1,0 +1,136 @@
+// プロトコル制御用
+dict dictOptionalHeader;
+// セーブ用
+dict dictSaveData;
+
+load()
+{
+	// 辞書読み込み
+	_script_load("plugin_init");
+	_script_load("plugin_menu");
+	_script_load("plugin_util");
+	// オプションヘッダ初期化
+	resetOptionalHeader();
+	// セーブデータ読み込み
+	dictSaveData = _vload("savedata");
+	// プラグイン初期化処理
+	loadPlugin();
+}
+
+unload()
+{
+	// セーブデータ保存
+	_vsave("savedata", dictSaveData);
+	// プラグイン後始末処理
+	unloadPlugin();
+}
+
+array _customrequest(dict ref)
+{
+	array ar;
+	// PLUGINに対するリクエストでない場合
+	if (_strstr(ref["head"], "PLUGIN") == -1) {
+		ar	+=	"PLUGIN/2.0 400 Bad Request";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		ar	+=	"";
+		return ar;
+	}
+	// セキュリティレベル="External"なら即返る
+	if (ref["SecurityLevel"] == "External") {
+		ar	+=	"PLUGIN/2.0 204 No Content";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		ar	+=	"";
+		return ar;
+	}
+	string s = _eventdict[ref["ID"]];
+	if (s == "") s = _fncstr(ref["ID"], ref);
+	// version
+	if (ref["ID"] == "version") {
+		ar	+=	"PLUGIN/2.0 200 OK";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		ar	+=	"Value: " + s;
+		ar	+=	"";
+		return ar;
+	}
+	// NOTIFY
+	if (_strstr(ref["head"], "NOTIFY") != -1) {
+		resetOptionalHeader();
+		ar	+=	"PLUGIN/2.0 200 OK";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		ar	+=	"";
+		return ar;
+	}
+	// GET
+	if (_strstr(ref["head"], "GET") != -1) {
+		ar	+=	"PLUGIN/2.0 200 OK";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		if (s != "") {
+			ar	+=	"Script: " + s;
+			makeDefaultEventAndReference(ref, s);
+		}
+		dict d = dictOptionalHeader;
+		if (d["target"] != "") {
+			ar	+=	"Target: " + d["target"];
+		}
+		if (d["event"] != "") {
+			ar	+=	"Event: " + d["event"];
+		}
+		if (d["event_option"] != "") {
+			ar	+=	"EventOption: " + d["event_option"];
+		}
+		if (d["script_option"] != "") {
+			ar	+=	"ScriptOption: " + d["script_option"];
+		}
+		if (_aryvn(d["reference"]) > 0) {
+			for(int i = 0; d["reference"][i] != nil; i++) {
+				ar	+=	"Reference" + i + ": " + d["reference"][i];
+			}
+		}
+		if (d["marker"] != "") {
+			ar	+=	"Marker: " + d["marker"];
+		}
+		resetOptionalHeader();
+		ar	+=	"";
+		return ar;
+	}
+	// 未知のリクエスト
+	else {
+		ar	+=	"PLUGIN/2.0 400 Bad Request";
+		ar	+=	"Sender: akari";
+		ar	+=	"Charset: UTF-8";
+		ar	+=	"";
+		return ar;
+	}
+}
+
+makeDefaultEventAndReference(dict ref, string script)
+{
+	dictOptionalHeader["event"] = "OnPluginExec";
+	array a = {
+		"Version=" + version(),
+		"From=" + pluginname(), 
+		"Script=" + script,
+		"Event=" + ref["ID"]
+	};
+	for (int i = 0; ref["Reference" + i] != nil; i++) {
+		a += ref["Reference" + i];
+	}
+	dictOptionalHeader["reference"] = a;
+}
+
+resetOptionalHeader()
+{
+	dictOptionalHeader = ${
+		$("target", ""),
+		$("event", ""),
+		$("event_option", ""),
+		$("script_option", ""),
+		$("reference", {}),
+		$("marker", "")
+	};
+}

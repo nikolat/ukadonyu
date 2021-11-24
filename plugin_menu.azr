@@ -1,0 +1,1149 @@
+//******************************************************************************
+// 起動時に呼び出されるイベント
+//******************************************************************************
+//-------------------------------------------------------
+// イベント：OnMenuExec
+// 内容　　：起動
+//-------------------------------------------------------
+string OnMenuExec(dict ref)
+{
+	// 必要な情報をグローバル変数に保存
+	sender = ref["Sender"];
+	hwnd = _strsplit(ref["Reference0"], _bytechar(1))[0];
+	ownedSSTPid = ref["Reference3"];
+
+	// 初期化時は情報を得るのみ
+	if (isInit)
+	{
+		isInit = 0;
+		_create_thread("TH_LoadPlugin");
+		return "";
+	}
+
+	// バルーンサイズ取得、初期表示の予約
+	_create_thread("TH_InitPlugin");
+
+	// バルーンサイズの取得前に\0のballoonを\b[2]にしておく
+	string s = "\![set,balloontimeout,0]\0\b[2]\_q■booting...\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：TH_InitPlugin
+// 機能　：\b[2]のバルーンサイズ取得、初期表示
+//------------------------------------------------------------------------------
+TH_InitPlugin()
+{
+	_sleep(0.25);	// \b[2]を表示しきってからサイズの取得に移る
+	balloonWidth = getBalloonWidth();
+	if (balloonWidth < 100)
+		balloonWidth = 100;
+	// 自身の名前・アイコンを取得
+	if (selfScreenName == "")
+		TH_VerifyAccount();
+	// Homeが取得済なら表示
+	string funcName;
+	if (_aryvn(arHome) > 0)
+		funcName = "showHomeTL";
+	else
+		funcName = "showSettingMenu";
+	speakBySSTP("\![raiseplugin," + pluginname() + "," + funcName + "]\e");
+}
+//------------------------------------------------------------------------------
+// 関数名：TH_VerifyAccount
+// 機能　：自身の名前・アイコンを取得
+//------------------------------------------------------------------------------
+TH_VerifyAccount()
+{
+	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string oauth_token = dictSaveData["oauth_token"];
+	if ((api_proxy_url == "") || (oauth_token == ""))
+		return;
+	string url = api_proxy_url
+		+ "?oauth_token=" + oauth_token
+		+ "&api=verify_credentials";
+	dict dAccount = _json2azv(_httpget(url, "utf8"));
+	string name = dAccount["display_name"];
+	if (name != "")
+	{
+		name = convertUnicode(name);
+		string sname = dAccount["username"];
+		if (dIconPath[sname] == nil)
+		{
+			string image_url = dAccount["avatar_static"];
+			array a = _strsplit(image_url, ".");
+			string extension = "." + a[_aryvn(a) - 1];
+			string tmpPath = _abspath("icon\tmp" + extension);
+			string pathAfter = _abspath("icon\icon_" + sname + ".png");
+			_http_download(image_url, tmpPath);
+			if (isImageFile(tmpPath))
+			{
+				resizeImage(tmpPath, pathAfter, 16, 16);
+				_fdelete(tmpPath);
+			}
+			else
+			{
+				_fdelete(tmpPath);
+				string defaultIconPath = _abspath("image\default.png");
+				_fcopy(defaultIconPath, pathAfter);
+			}
+			dIconPath += $(sname, pathAfter);
+		}
+		selfName = name;
+		selfScreenName = sname;
+	}
+	else
+	{
+		selfName = "";
+		selfScreenName = "";
+	}
+}
+//******************************************************************************
+// メニューアイコン
+//******************************************************************************
+//------------------------------------------------------------------------------
+// 関数名：showBottunSet
+// 機能　：バルーン上部に表示してるメニュー
+// 引数　：width バルーンの幅（省略時、グローバル変数より取得）
+// 戻り値：アイコンに選択肢を張ったSakuraScript
+//------------------------------------------------------------------------------
+string showBottunSet(int width)
+{
+	if (width < 100)
+		width = balloonWidth;
+	int ofs = width - 16;
+
+	string s;
+	string path;
+	path = _abspath("image\fam_user_comment.png");
+	s += "\_l[" + (ofs - 175) + ",0]\__q[OpenPostBar,]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_arrow_refresh.png");
+	s += "\_l[" + (ofs - 150) + ",0]\__q[UpdateAll]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_house.png");
+	s += "\_l[" + (ofs - 125) + ",0]\__q[ViewHome]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_group_go.png");
+	s += "\_l[" + (ofs - 100) + ",0]\__q[ViewMentions]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_email.png");
+	s += "\_l[" + (ofs -  75) + ",0]\__q[ViewMessages]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_star.png");
+	s += "\_l[" + (ofs -  50) + ",0]\__q[ViewLikes]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_wrench.png");
+	s += "\_l[" + (ofs -  25) + ",0]\__q[Setting]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_cross.png");
+	s += "\_l[" + (ofs -   0) + ",0]\__q[Menu_CANCEL]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	return s;
+}
+//******************************************************************************
+// 閉じる
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢：Menu_CANCEL
+// 内容　：閉じる
+//-------------------------------------------------------
+string Menu_CANCEL(dict ref)
+{
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+	return "\e";
+}
+//******************************************************************************
+// 設定
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢：Setting
+// 内容　：設定メニュー
+//-------------------------------------------------------
+string Setting(dict ref)
+{
+	return showSettingMenu();
+}
+//-------------------------------------------------------
+// 関数名：showSettingMenu
+// 機能　：設定メニュー表示
+// 戻り値：設定メニュー表示SakuraScript(オプションヘッダ設定済)
+//-------------------------------------------------------
+string showSettingMenu()
+{
+	string s;
+	s += setTimerraise();
+	s += "\![set,balloontimeout,0]\![set,choicetimeout,0]\0\b[2]\_q\_n";
+	s += showBottunSet(balloonWidth);
+	s += "\_l[0,0]■settings\_l[0,30]";
+	if (selfScreenName != "")
+	{
+		// ユーザアイコン表示
+		string path = dIconPath[selfScreenName];
+		s += "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
+		// ユーザ名表示
+		s += " << \f[bold,true]" + selfName + "\f[bold,false] >> ";
+	}
+	s += "\n\n";
+	string str;
+	// OAuth_Token
+	str = "oauth_token         : " + dictSaveData["oauth_token"];
+	s += menuItem(str, {"Config", "OAuth_Token"}, 0);
+	// API Proxy URL
+	str = "API Proxy URL       : " + dictSaveData["api_proxy_url"];
+	s += menuItem(str, {"Config", "API_Proxy_URL"}, 100);
+	// TL get interval
+	if (dictSaveData["TL_get_interval"] > 0) {
+		str  = "TL get interval     : " + fillSpace(dictSaveData["TL_get_interval"]) + " min";
+	} else {
+		str  = "TL get interval     : OFF";
+	}
+	s += menuItem(str, {"Config", "PopupTL"}, 100);
+	// num of post getting
+	if (dictSaveData["num_of_post_get"] > 0) {
+		str  = "num of post getting : " + fillSpace(dictSaveData["num_of_post_get"]) + " post";
+	} else {
+		str  = "num of post getting :  20 post";
+	}
+	s += menuItem(str, {"Config", "NumOfPostGet"}, 100);
+	// get OAuth token
+	str = "get OAuth token (open browser)";
+	s += menuItem(str, {"OpenOAuth"}, 150);
+
+	s += "\_n\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 関数名：setTimerraise
+// 機能　：Toot取得タイマセット
+// 戻り値：タイマセットするSakuraScript
+//-------------------------------------------------------
+string setTimerraise()
+{
+	string s;
+	if (dictSaveData["TL_get_interval"] >= 0)
+	{
+		s += "\![timerraiseplugin," + (60 * 1000 * dictSaveData["TL_get_interval"]) + ",0,"
+			+ pluginname() + ",PopUpTL]";
+	}
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：Config
+// 内容　：設定メニューで選択したIDの入力ボックスを開く
+// Reference2: 選択ID
+//-------------------------------------------------------
+string Config(dict ref)
+{
+	string selectedId  = ref["Reference2"];
+	string s = "\C\_l[0,0]\_q \_q" + closeAllInputBox();
+
+	switch (selectedId)
+	{
+	  case "OAuth_Token":
+		s += "\![open,inputbox," + selectedId + ",0," + dictSaveData["oauth_token"] + "]";
+		break;
+	  case "API_Proxy_URL":
+		s += "\![open,inputbox," + selectedId + ",0," + dictSaveData["api_proxy_url"] + "]";
+		break;
+	  case "PopupTL":
+		s += "\![open,sliderinput," + selectedId + ",0," + dictSaveData["TL_get_interval"] + ",0,30]";
+		break;
+	  case "NumOfPostGet":
+		s += "\![open,sliderinput," + selectedId + ",0," + dictSaveData["num_of_post_get"] + ",10,200]";
+		break;
+	  default:
+		break;
+	}
+	s += "\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 関数名：closeAllInputBox
+// 機能　：すべての入力ボックスを閉じる
+// 戻り値：入力ボックスを閉じるSakuraScript
+//-------------------------------------------------------
+string closeAllInputBox()
+{
+	string s;
+	s += "\![close,inputbox,Post]";
+	s += "\![close,inputbox,OAuth_Token]";
+	s += "\![close,inputbox,API_Proxy_URL]";
+	s += "\![close,inputbox,PopupTL]";
+	s += "\![close,inputbox,NumOfPostGet]";
+	return s;
+}
+//-------------------------------------------------------
+// 各種入力処理
+//-------------------------------------------------------
+string InputOAuth_Token(dict ref)
+{
+	if (dictSaveData["oauth_token"] == nil)
+		dictSaveData += $("oauth_token", ref["Reference1"]);
+	else
+		dictSaveData["oauth_token"] = ref["Reference1"];
+	clearLog();
+	return showSettingMenu();
+}
+string InputAPI_Proxy_URL(dict ref)
+{
+	if (dictSaveData["api_proxy_url"] == nil)
+		dictSaveData += $("api_proxy_url", ref["Reference1"]);
+	else
+		dictSaveData["api_proxy_url"] = ref["Reference1"];
+	return showSettingMenu();
+}
+string InputPopupTL(dict ref)
+{
+	int min = ref["Reference1"];
+	if (dictSaveData["TL_get_interval"] == nil)
+		dictSaveData += $("TL_get_interval", min);
+	else
+		dictSaveData["TL_get_interval"] = min;
+	return showSettingMenu();
+}
+string InputNumOfPostGet(dict ref)
+{
+	int count = ref["Reference1"];
+	if (dictSaveData["num_of_post_get"] == nil)
+		dictSaveData += $("num_of_post_get", count);
+	else
+		dictSaveData["num_of_post_get"] = count;
+	return showSettingMenu();
+}
+//-------------------------------------------------------
+// 関数名：clearLog
+// 機能　：取得済のログを消去し、再認証
+//-------------------------------------------------------
+clearLog()
+{
+	array arInit;
+	dict dInit;
+	arHome = arInit;
+	arMentions = arInit;
+	arLikes = arInit;
+	sHome = "";
+	sMentions = "";
+	sLikes = "";
+	dIconPath = dInit;
+	dict dUsers = dInit;
+	selfName = "";
+	selfScreenName = "";
+	_create_thread("TH_VerifyAccount");
+}
+//-------------------------------------------------------
+// 選択肢：OpenOAuth
+// 内容　：OAuth認証ページをブラウザで開く
+//-------------------------------------------------------
+string OpenOAuth(dict ref)
+{
+	string url = getPluginOAuthURL();
+	string s = "\C\![open,browser," + url + "]\_l[0,0]\_q \_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//******************************************************************************
+// 更新
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢：UpdateAll
+// 内容　：投稿全更新
+//-------------------------------------------------------
+string UpdateAll(dict ref)
+{
+	string s = "\![set,balloontimeout,0]\0\b[2]\_q■updating...\_q\e";
+
+	_create_thread("TH_UpdateAll");
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：TH_UpdateAll
+// 機能　：Mastodonからhome, mention, likes, DMの投稿を取得してhomeを表示する
+//------------------------------------------------------------------------------
+TH_UpdateAll()
+{
+	_sleep(0.5);	//ちょっと待たないと固まったように見える
+	TH_GetAllToots();
+	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+}
+//------------------------------------------------------------------------------
+// 関数名：TH_GetAllToots
+// 機能　：Mastodonからhome, mention, likes, DMの投稿を取得する
+//------------------------------------------------------------------------------
+TH_GetAllToots()
+{
+	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string oauth_token = dictSaveData["oauth_token"];
+	if ((api_proxy_url == "") || (oauth_token == ""))
+		return;
+	string urlBase = api_proxy_url
+		+ "?oauth_token=" + oauth_token;
+	if (dictSaveData["num_of_post_get"] != nil)
+		urlBase += "&count=" + dictSaveData["num_of_post_get"];
+	urlBase += "&api=";
+	_sleep(0.125);
+	arHome = getJsonTL(urlBase + "home_timeline");
+	_sleep(0.125);
+	arMentions = getJsonTL(urlBase + "mentions");
+	_sleep(0.125);
+	arLikes = getJsonTL(urlBase + "favorites");
+	sHome = "";
+	sMentions = "";
+	sLikes = "";
+}
+//------------------------------------------------------------------------------
+// 関数名：TH_UpdateHome
+// 機能　：Mastodonからhomeの投稿を取得する
+//------------------------------------------------------------------------------
+TH_UpdateHome()
+{
+	_sleep(1);	//投稿が反映されるまでわりと時間かかる
+	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string oauth_token = dictSaveData["oauth_token"];
+	if ((api_proxy_url == "") || (oauth_token == ""))
+		return;
+	string urlBase = api_proxy_url
+		+ "?oauth_token=" + oauth_token;
+	if (dictSaveData["num_of_post_get"] != nil)
+		urlBase += "&count=" + dictSaveData["num_of_post_get"];
+	urlBase += "&api=";
+	arHome = getJsonTL(urlBase + "home_timeline");
+	sHome = "";
+
+	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+}
+//------------------------------------------------------------------------------
+// 関数名：getJsonTL
+// 機能　：Mastodonから指定したJSONオブジェクトを取得する(必要な情報のみ取捨選択済)
+// 　　　　未取得のユーザアイコンも取得する
+// 引数　：url 取得先URL
+// 戻り値：JSONオブジェクト(配列型)
+//------------------------------------------------------------------------------
+array getJsonTL(string url)
+{
+	array arJson = _httpget(url, "utf8");
+	for (int i = 0; i < _aryvn(arJson); i++)
+	{
+		arJson[i] = _strreplace(arJson[i], "\":true", "\":\"true\"");//AKARIで_json2azvするとture/false双方とも0になる
+	}
+	array arTLTmp = _json2azv(arJson);
+	array arTLAdd;
+	int n = _aryvn(arTLTmp);
+	for (int i = 0; i < n; i++) {
+		dict d = arTLTmp[i];
+		string boostby = "";
+		if (d["reblog"] != 0 && d["reblog"]["id"] != nil)//AKARIで_json2azvするとnullは0になる
+		{
+			boostby = d["account"]["username"];
+			if (dIconPath[boostby] == nil)
+			{
+				string image_url = d["account"]["avatar_static"];
+				getIcon(image_url, boostby);
+			}
+			d = d["reblog"];//Boostは相手側の情報に置き換えることにする
+		}
+		string postid = d["id"];
+		string protected = d["visibility"];
+		string favorited = d["favourited"];
+		string sname = d["account"]["username"];
+		string name = d["account"]["display_name"];
+		string post = d["content"];
+		string posturl = d["url"];
+		if (protected == "")
+			protected = d["status"]["visibility"];
+		if (favorited == "")
+			favorited = d["status"]["favourited"];
+		if (post == "")
+			post = d["status"]["content"];
+		if (posturl == "")
+			posturl = d["status"]["url"];
+		post = convertHtml(post);	// 実態参照変換
+		post = convertUnicode(post);
+		post = _strreplace(post, "<br />", "\\u003cbr /\\u003e");	//<br />は残したい
+		post = _regex_replace(post, "<(\"[^\"]*\"|'[^']*'|[^'\">])*>", "");	//HTMLタグ除去
+		post = _strreplace(post, "\\u003cbr /\\u003e", "<br />");
+		name = convertUnicode(name);
+		if (dIconPath[sname] == nil)
+		{
+			string image_url = d["account"]["avatar_static"];
+			getIcon(image_url, sname);
+		}
+		array arEmoji = d["emojis"];
+		arEmoji = append(arEmoji, d["account"]["emojis"]);
+		arEmoji = append(arEmoji, d["status"]["emojis"]);
+		arEmoji = append(arEmoji, d["status"]["account"]["emojis"]);
+		for (int j = 0; arEmoji[j] != nil; j++)
+		{
+			string strEmoji = arEmoji[j]["shortcode"];
+			if (dEmojiPath[strEmoji] == nil)
+			{
+				string image_url = arEmoji[j]["static_url"];
+				getEmoji(image_url, strEmoji);
+			}
+		}
+
+		dict dUser = ${
+			$("screen_name", sname),
+			$("name", name),
+			$("protected", protected)
+		};
+		dict dAdd = ${
+			$("id", postid),
+			$("favorited", favorited),
+			$("text", post),
+			$("url", posturl),
+			$("boostby", boostby),
+			$("user", dUser)
+		};
+		arTLAdd += dAdd;
+	}
+	return arTLAdd;
+}
+getIcon(string image_url, string sname)
+{
+	array a = _strsplit(image_url, ".");
+	string extension = "." + a[_aryvn(a) - 1];
+	string tmpPath = _abspath("icon\tmp" + extension);
+	string pathAfter = _abspath("icon\icon_" + sname + ".png");
+	_sleep(0.125);
+	_http_download(image_url, tmpPath);
+	if (isImageFile(tmpPath))
+	{
+		resizeImage(tmpPath, pathAfter, 16, 16);
+		_fdelete(tmpPath);
+	}
+	else
+	{
+		_fdelete(tmpPath);
+		string defaultIconPath = _abspath("image\default.png");
+		_fcopy(defaultIconPath, pathAfter);
+	}
+	dIconPath += $(sname, pathAfter);
+}
+getEmoji(string image_url, string strEmoji)
+{
+	array a = _strsplit(image_url, ".");
+	string extension = "." + a[_aryvn(a) - 1];
+	string tmpPath = _abspath("icon\tmp" + extension);
+	string pathAfter = _abspath("icon\emoji_" + strEmoji + ".png");
+	_sleep(0.125);
+	_http_download(image_url, tmpPath);
+	if (isImageFile(tmpPath))
+	{
+		resizeImage(tmpPath, pathAfter, 16, 16);
+		_fdelete(tmpPath);
+	}
+	else
+	{
+		_fdelete(tmpPath);
+		string defaultIconPath = _abspath("image\default.png");
+		_fcopy(defaultIconPath, pathAfter);
+	}
+	dEmojiPath += $(strEmoji, pathAfter);
+}
+//------------------------------------------------------------------------------
+// 関数名：showHomeTL
+// 機能　：Homeを表示する
+// 戻り値：Homeを表示するSakuraScript(オプションヘッダ設定済)
+//------------------------------------------------------------------------------
+string showHomeTL()
+{
+	string s;
+	s += showTL("home", arHome);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：showMentionsTL
+// 機能　：Mentionsを表示する
+// 戻り値：Mentionsを表示するSakuraScript(オプションヘッダ設定済)
+//------------------------------------------------------------------------------
+string showMentionsTL()
+{
+	string s;
+	s += showTL("notifications", arMentions);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：showLikesTL
+// 機能　：Likesを表示する
+// 戻り値：Likesを表示するSakuraScript(オプションヘッダ設定済)
+//------------------------------------------------------------------------------
+string showLikesTL()
+{
+	string s;
+	s += showTL("favourites", arLikes);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：showMessagesTL
+// 機能　：Messagesを表示する
+// 戻り値：Messagesを表示するSakuraScript(オプションヘッダ設定済)
+//------------------------------------------------------------------------------
+string showMessagesTL()
+{
+	string s;
+	s += showTL("conversations", arMentions);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：showTL
+// 機能　：指定したJSONオブジェクトからTLを表示
+// 引数　：title 表示タイトル
+// 引数　：arTL 解析するデータ
+// 戻り値：指定された内容を表示するSakuraScript
+//------------------------------------------------------------------------------
+string showTL(string title, array arTL)
+{
+	// キャッシュがあればそれを返す
+	if ((title == "home") && (sHome != ""))
+		return sHome;
+	if ((title == "notifications") && (sMentions != ""))
+		return sMentions;
+	if ((title == "favourites") && (sLikes != ""))
+		return sLikes;
+	if ((title == "conversations") && (sMessages != ""))
+		return sMessages;
+
+	string s;
+	s += showBottunSet(balloonWidth);
+	s += "\_l[0,0]■" + title + "\_l[0,16]\n[half]\n\n\n\n\n\n";
+	int numwords = _floor(balloonWidth / 6.14);
+	s += "\f[underline,true]\_n";
+	s += makeLongText("　", numwords);
+	s += "\f[underline,default]\n";
+	int n = _aryvn(arTL);
+	for (int i = 0; i < n; i++) {
+		dict d = arTL[i];
+		string postid = d["id"];
+		string posturl = d["url"];
+		string sname = d["user"]["screen_name"];
+		string name = d["user"]["name"];
+		string protected = d["user"]["protected"];
+		string favorited = d["favorited"];
+		string post = d["text"];
+		string boostby = d["boostby"];
+		if (title == "conversations" && protected != "direct")
+			continue;
+		int isprotected;
+		if (protected != "public")
+			isprotected = 1;
+		else
+			isprotected = 0;
+		int isfavorited;
+		if (favorited == "true")
+			isfavorited = 1;
+		else
+			isfavorited = 0;
+		// アイコン表示
+		string path = dIconPath[sname];
+		s += "\__q[OpenPostBar," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + "," + isprotected + ",0,1]"
+			+ "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]\__q";
+		if (boostby != "")
+		{
+			path = dIconPath[boostby];
+			s += "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
+		}
+		// favoritedの場合スターを表示
+		if (isfavorited) {
+			path = _abspath("image\fam_star.png");
+			s += "\__q[AddStar," + postid + ",0]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		} else {
+			path = _abspath("image\fam_star_g.png");
+			s += "\__q[AddStar," + postid + ",1]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		}
+		// protectedの場合アイコンを表示
+		if (isprotected) {
+			path = _abspath("image\fam_lock.png");
+			s += "\_b[" + path + ",inline,--clipping=0 0 16 16]";
+		}
+		// 名前表示
+		s += menuUserName(name, {"ViewPost", title, name, post, sname, postid, posturl, isfavorited, isprotected, 0, 0});
+		// POST表示
+		numwords = _floor(balloonWidth / 6.14);
+		s += "\n[80]\f[height,-2]\_l[25,]";
+		array arEmoji = _dickeyget(dEmojiPath);
+		string escapedPost = escapeAllTags(makeShortText(post, numwords));
+		escapedPost = _regex_replace(escapedPost, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+		escapedPost = _strreplace(escapedPost, "<br />", " ");//一覧は改行でなくスペースに
+		s += escapedPost;
+		s += "\n\f[height,default]";
+	}
+	s += "\_n";
+
+	// キャッシュ
+	if (title == "home")
+		sHome = s;
+	else if (title == "notifications")
+		sMentions = s;
+	else if (title == "favourites")
+		sLikes = s;
+	else if (title == "conversations")
+		sMessages = s;
+
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：ViewPost
+// 内容　：バルーン上部に個別のPOSTを加えたタイムラインを表示する
+//-------------------------------------------------------
+string ViewPost(dict ref)
+{
+	string s;
+	string title = ref["Reference2"];
+	switch (title)
+	{
+	  case "home":
+		s += showTL(title, arHome);
+		break;
+	  case "notifications":
+		s += showTL(title, arMentions);
+		break;
+	  case "favourites":
+		s += showTL(title, arLikes);
+		break;
+	  case "conversations":
+		s += showTL(title, arMentions);
+		break;
+	  default:
+		break;
+	}
+	s += showViewPost(ref["Reference2"], ref["Reference3"], ref["Reference4"], ref["Reference5"],
+		ref["Reference6"], ref["Reference7"], ref["Reference8"], ref["Reference9"], ref["Reference10"],
+		ref["Reference11"]);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
+// 関数名：showViewPost
+// 機能　：バルーン上部に個別のPOSTを表示する
+// 引数　：title タイトル
+// 引数　：name ユーザ名（表示用）
+// 引数　：post POST内容
+// 引数　：sname ユーザ名
+// 引数　：postid POSTID
+// 引数　：posturl POSTURL
+// 引数　：isfavorited Favoritedフラグ
+// 引数　：isprotected Protectedフラグ
+// 引数　：isboost Boostフラグ
+// 引数　：isreply Replyフラグ
+// 戻り値：バルーン上部に個別のPOSTを表示するSakuraScript
+//------------------------------------------------------------------------------
+string showViewPost(string title, string name, string post, string sname, string postid, string posturl, int isfavorited, int isprotected, int isboost, int isreply)
+{
+	string s;
+	// 情報が無い場合はreturn
+	if (sname == "") {
+		return "";
+	}
+	// ユーザアイコン表示
+	string path = dIconPath[sname];
+	if (postid != "")
+		s += "\_l[0,0]\n\n[half]\__q[OpenPostBar," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + "," + isprotected + ",0,1]"
+			+ "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]\__q";
+	else
+		s += "\_l[0,0]\n\n[half]"
+			+ "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
+	// スター表示
+	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
+		if (isfavorited) {
+			path = _abspath("image\fam_star.png");
+			s += "\__q[AddStar," + postid + ",0]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		} else {
+			path = _abspath("image\fam_star_g.png");
+			s += "\__q[AddStar," + postid + ",1]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		}
+	}
+	// WEBアイコン表示
+	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
+		path = _abspath("image\fam_world_go.png");
+		s += "\_a[" + posturl + "]" + "\_b[" + path + ",inline,--clipping=0 0 16 16]\_a";
+	}
+	// テキストコピーアイコン表示
+	path = _abspath("image\fam_pencil_go.png");
+	s += "\__q[TextCopy," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + "," + isprotected + ",0,0]"
+		+ "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	// Boostアイコン表示
+	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
+		if (isprotected) {
+			path = _abspath("image\fam_lock.png");
+			s += "\_b[" + path + ",inline,--clipping=0 0 16 16]";
+		} else {
+			path = _abspath("image\fam_group_edit.png");
+			s += "\__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,1,0]"
+				+ "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		}
+	}
+	array arEmoji = _dickeyget(dEmojiPath);
+	// ユーザ名表示
+	string escapedName = escapeAllTags(name);
+	escapedName = _regex_replace(escapedName, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+	s += " << \f[bold,true]" + escapedName + "\f[bold,false] >> ";
+	// POST表示
+	string escapedPost = escapeAllTags(post);
+	escapedPost = _regex_replace(escapedPost, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+	escapedPost = _strreplace(escapedPost, "<br />", "\\n");
+	if (isboost) {
+		s += "\n\_l[20,]Boost this post ? \__q[BoostPost," + postid + "] Y \__q / \__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,0,0] N \__q"
+		   + "\n\n[half]\f[color,#888]" + escapedPost + "\f[color,default]";
+	} else if (isreply) {
+		s += "\n\_l[20,]<< \f[bold,true]Reply 140 charactors.\f[bold,false] >>"
+		   + "\n\n[half]\f[color,#888]" + escapedPost + "\f[color,default]";
+	} else {
+		s += "\n" + escapedPost;
+	}
+	return s;
+}
+//-------------------------------------------------------
+// 関数名：PopUpTL
+// 機能　：HomeとMentionsの投稿を取得しポップアップ通知する(タイマセット用)
+//-------------------------------------------------------
+string PopUpTL(dict ref)
+{
+	_create_thread("TH_PopUpTL");
+	return "";
+}
+//-------------------------------------------------------
+// 関数名：TH_PopUpTL
+// 機能　：HomeとMentionsの投稿を取得しポップアップ通知する
+//-------------------------------------------------------
+TH_PopUpTL()
+{
+	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string oauth_token = dictSaveData["oauth_token"];
+	if ((api_proxy_url == "") || (oauth_token == ""))
+		return;
+	string urlBase = api_proxy_url
+		+ "?oauth_token=" + oauth_token;
+	if (dictSaveData["num_of_post_get"] != nil)
+		urlBase += "&count=" + dictSaveData["num_of_post_get"];
+	urlBase += "&api=";
+	_sleep(0.125);
+	arHomeNext = getJsonTL(urlBase + "home_timeline");
+	_sleep(0.125);
+	arMentionsNext = getJsonTL(urlBase + "mentions");
+	sHome = "";
+	sMentions = "";
+	speakBySSTP("\C\![raiseplugin," + pluginname() + ",showPopUpTL]\e");
+}
+//-------------------------------------------------------
+// 関数名：showPopUpTL
+// 機能　：HomeとMentionsに更新があればポップアップ通知
+// 戻り値：ポップアップを通知するSakuraScript(オプションヘッダ設定済)
+//-------------------------------------------------------
+string showPopUpTL(dict ref)
+{
+	string lastPostIdMentions;
+	if (_aryvn(arMentions) > 0)
+		lastPostIdMentions = arMentions[0]["id"];
+	string lastPostIdHome;
+	if (_aryvn(arHome) > 0)
+		lastPostIdHome = arHome[0]["id"];
+	array arTL;
+	int n;
+	array arPostMentions;
+	array arPostHome;
+	arTL = arMentionsNext;
+	n = _aryvn(arTL);
+	for (int i = 0; i < n; i++) {
+		dict d = arTL[i];
+		string postid = d["id"];
+		if ((_pow(0.1, 10) * lastPostIdMentions) < (_pow(0.1, 10) * postid))
+		{
+			string name = d["user"]["name"];
+			string post = d["text"];
+			arPostMentions += name + ": " + post;
+		}
+		else
+		{
+			break;
+		}
+	}
+	arTL = arHomeNext;
+	n = _aryvn(arTL);
+	for (int i = 0; i < n; i++) {
+		dict d = arTL[i];
+		string postid = d["id"];
+		if ((_pow(0.1, 10) * lastPostIdHome) < (_pow(0.1, 10) * postid))
+		{
+			string name = d["user"]["name"];
+			string post = d["text"];
+			arPostHome += name + ": " + post;
+		}
+		else
+		{
+			break;
+		}
+	}
+	arHome = arHomeNext;
+	arMentions = arMentionsNext;
+	int count = _aryvn(arPostMentions) + _aryvn(arPostHome);
+	if (count == 0)
+		return "";
+	string icon = "info";
+	if (_aryvn(arPostMentions) > 0)
+		icon = "warning";
+	string s = "\C\![set,trayballoon,--icon=" + icon + ",--timeout=15,--title=" + pluginname() + " 新着 " + count + "件";
+	n = _aryvn(arPostMentions);
+	for (int i = 0; i < n; i++)
+	{
+		s += "," + escapeText("--text=" + arPostMentions[i]);
+	}
+	n = _aryvn(arPostHome);
+	for (int i = 0; i < n; i++)
+	{
+		s += "," + escapeText("--text=" + arPostHome[i]);
+	}
+	s += "]\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：TextCopy
+// 内容　：表示中のPOSTのテキストをクリップボードにコピーする
+//-------------------------------------------------------
+string TextCopy(dict ref)
+{
+	string text = ref["Reference4"];
+	textCopy2(text);
+	return ViewPost(ref);
+}
+//******************************************************************************
+// 表示
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢：ViewHome
+// 内容　：Homeを表示
+//-------------------------------------------------------
+string ViewHome(dict ref)
+{
+	return showHomeTL();
+}
+//-------------------------------------------------------
+// 選択肢：ViewMentions
+// 内容　：Mentionsを表示
+//-------------------------------------------------------
+string ViewMentions(dict ref)
+{
+	return showMentionsTL();
+}
+//-------------------------------------------------------
+// 選択肢：ViewLikes
+// 内容　：Likesを表示
+//-------------------------------------------------------
+string ViewLikes(dict ref)
+{
+	return showLikesTL();
+}
+//-------------------------------------------------------
+// 選択肢：ViewMessages
+// 内容　：Messagesを表示
+//-------------------------------------------------------
+string ViewMessages(dict ref)
+{
+	return showMessagesTL();
+}
+//******************************************************************************
+// 投稿
+//******************************************************************************
+//-------------------------------------------------------
+// 選択肢：OpenPostBar
+// 内容　：投稿用入力ボックス表示
+//-------------------------------------------------------
+string OpenPostBar(dict ref)
+{
+	if (selfScreenName == "")
+		return "";
+	string sname = ref["Reference5"];
+	string postid = ref["Reference6"];
+	postidToReply = postid;
+	string path;
+	if (sname != "")
+		path = dIconPath[sname];
+	else
+		path = dIconPath[selfScreenName];
+	string s;
+	s += closeAllInputBox();
+	s += "\![open,inputbox,Post,0,--limit=140";
+	if (sname != "")
+		s += ",--text=@" + sname + " ";
+	s += "]";
+	if (sname == "")
+	{
+		s += "\_l[0,0]\n\n[half]\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
+		s += " << \f[bold,true]Toot 140 charactors.\f[bold,false] >>";
+	}
+	string title = ref["Reference2"];
+	if (title == "")
+		title = "home";
+	switch (title)
+	{
+	  case "home":
+		s += showTL(title, arHome);
+		break;
+	  case "notifications":
+		s += showTL(title, arMentions);
+		break;
+	  case "favourites":
+		s += showTL(title, arLikes);
+		break;
+	  case "conversations":
+		s += showTL(title, arMentions);
+		break;
+	  default:
+		break;
+	}
+	s += showViewPost(ref["Reference2"], ref["Reference3"], ref["Reference4"], ref["Reference5"],
+		ref["Reference6"], ref["Reference7"], ref["Reference8"], ref["Reference9"], ref["Reference10"],
+		ref["Reference11"]);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 投稿入力処理
+//-------------------------------------------------------
+string InputPost(dict ref)
+{
+	string post = ref["Reference1"];
+	string postid = postidToReply;
+	postidToReply = "";
+	string url = dictSaveData["api_proxy_url"];
+	string aid = "MastodonPost";
+	string s = "\![execute,http-post"
+		+ "," + url
+		+ ",--file=update.json"
+		+ ",--async=" + aid
+		+ ",--nodescript"
+		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
+		+ ",--param=api=update"
+		+ ",--param=status=" + escapeText(post);
+	if (postid != "")
+		s += ",--param=in_reply_to_status_id=" + postid;
+	s += "]\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：BoostPost
+// 内容　：Boost実行
+// Reference2: postID
+//-------------------------------------------------------
+string BoostPost(dict ref)
+{
+	string postid = ref["Reference2"];
+	string url = dictSaveData["api_proxy_url"];
+	string aid = "MastodonPost";
+	string s = "\![execute,http-post"
+		+ "," + url
+		+ ",--file=update.json"
+		+ ",--async=" + aid
+		+ ",--nodescript"
+		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
+		+ ",--param=api=retweet"
+		+ ",--param=postid=" + postid + "]\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//-------------------------------------------------------
+// 選択肢：AddStar
+// 内容　：Add Star or Remove Star
+// Reference2: postID
+// Reference3: 1:create/0:destroy(Boolean)
+//-------------------------------------------------------
+string AddStar(dict ref)
+{
+	string postid = ref["Reference2"];
+	int addstar = ref["Reference3"];
+	string resource;
+	if (addstar)
+		resource = "create";
+	else
+		resource = "destroy";
+	string url = dictSaveData["api_proxy_url"];
+	string aid = "MastodonAddStar";
+	string s = "\![execute,http-post"
+		+ "," + url
+		+ ",--file=update.json"
+		+ ",--async=" + aid
+		+ ",--nodescript"
+		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
+		+ ",--param=api=favorites"
+		+ ",--param=resource=" + resource
+		+ ",--param=postid=" + postid + "]\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
