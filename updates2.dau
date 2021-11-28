@@ -1,10 +1,11 @@
 akari.dll604e9d9fa66b8ad367d22ccd682a74e4size=889856date=2016-05-17T05:18:04charset=Shift_JIS
-descript.txtc2523439d97fc6192d8853080ee7dbd8size=280date=2021-11-24T19:47:40
+descript.txt768e4636799a63e0845868245f0d64ffsize=290date=2021-11-28T10:48:31
 icon/icon.txt1a13db0fe2af87bc985510e5310bdb38size=47date=2021-11-24T19:38:33
 image/default.pnga21d963fe55b69824152bfae32913c6dsize=576date=2021-11-23T07:35:32
 image/fam_arrow_refresh.png6b95778460f660aa7c08f47d244780a7size=685date=2006-03-12T21:48:48
 image/fam_cross.png42492684e24356a4081134894eabeb9esize=655date=2006-03-12T21:51:40
 image/fam_email.pngaf58188296abfe7adbf9280a563731f2size=641date=2006-03-12T21:52:32
+image/fam_group.png3afbbb77c13a366898f9088f7ae086a0size=753date=2006-03-12T21:53:28
 image/fam_group_edit.pngc0c02f448dc32bad1822f14bc470372fsize=785date=2006-03-12T21:53:32
 image/fam_group_go.png21da183f34ae8b6b3a3fbf84bfd839b9size=842date=2006-03-12T21:53:34
 image/fam_house.png99bea32e1990e011e870f6c562e87a6asize=806date=2006-03-12T21:53:42
@@ -19,10 +20,10 @@ image/fam_wrench.pnga137eb4441860564ce1655357af26de8size=610date=2006-03-12T2
 install.txt5ca1f31d4c6cdbcad60fe877b503abaasize=73date=2021-11-22T16:50:36
 licence.txtde27e0c8fb790d0d971e1559700b784csize=1970date=2021-11-24T14:48:06
 main.azra8d2a5e2bf623ca402f6737efb335c21size=3079date=2021-11-24T19:49:25
-plugin_init.azr8bf78bbd0f36bfcb5e01a800d9557f52size=8434date=2021-11-24T21:20:03
-plugin_menu.azra730372a88b19a9c322d66974f89913esize=40049date=2021-11-24T20:50:45
+plugin_init.azr7959e94c135cd67f56811279236b5d24size=8554date=2021-11-28T10:31:50
+plugin_menu.azr2aa6bc12b588a8277ec187e4fb93cb21size=41707date=2021-11-28T10:40:36
 plugin_util.azrf6a17fbe3858e954743ca85656a38c5csize=15124date=2021-11-24T20:44:12
-readme.txt4556171ea6a0d638f1477c67afdd5518size=3064date=2021-11-24T21:19:15
+readme.txt50ed09ce1e829ef9a970612a162b0110size=3139date=2021-11-28T10:32:19
 saori/HandUtil/HandUtil.dlld382e237a4b365a302b281664d9e9d36size=38400date=2011-05-05T18:38:36
 saori/HandUtil/HandUtil_readme.txt27422edfad98e1d957cc78f815587a2csize=4501date=2011-05-28T14:47:52
 saori/imgctl_saori/imgctl.dll1e781386e8e88d567ff9db96dfe2956csize=442368date=2010-03-22T20:53:14

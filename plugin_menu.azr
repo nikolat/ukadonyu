@@ -120,13 +120,16 @@ string showBottunSet(int width)
 	string s;
 	string path;
 	path = _abspath("image\fam_user_comment.png");
-	s += "\_l[" + (ofs - 175) + ",0]\__q[OpenPostBar,]";
+	s += "\_l[" + (ofs - 200) + ",0]\__q[OpenPostBar,]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
 	path = _abspath("image\fam_arrow_refresh.png");
-	s += "\_l[" + (ofs - 150) + ",0]\__q[UpdateAll]";
+	s += "\_l[" + (ofs - 175) + ",0]\__q[UpdateAll]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
 	path = _abspath("image\fam_house.png");
-	s += "\_l[" + (ofs - 125) + ",0]\__q[ViewHome]";
+	s += "\_l[" + (ofs - 150) + ",0]\__q[ViewHome]";
+	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+	path = _abspath("image\fam_group.png");
+	s += "\_l[" + (ofs - 125) + ",0]\__q[ViewLocalTimeline]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
 	path = _abspath("image\fam_group_go.png");
 	s += "\_l[" + (ofs - 100) + ",0]\__q[ViewMentions]";
@@ -399,6 +402,8 @@ TH_GetAllToots()
 {
 	string api_proxy_url = dictSaveData["api_proxy_url"];
 	string oauth_token = dictSaveData["oauth_token"];
+	_sleep(0.125);
+	arLocalTimeline = getJsonTL(getMastodonURL() + "api/v1/timelines/public?local=true");
 	if ((api_proxy_url == "") || (oauth_token == ""))
 		return;
 	string urlBase = api_proxy_url
@@ -635,6 +640,23 @@ string showMessagesTL()
 	return s;
 }
 //------------------------------------------------------------------------------
+// 関数名：showLocalTL
+// 機能　：LocalTimelineを表示する
+// 戻り値：LocalTimelineを表示するSakuraScript(オプションヘッダ設定済)
+//------------------------------------------------------------------------------
+string showLocalTL()
+{
+	string s;
+	s += showTL("local", arLocalTimeline);
+	s = "\![set,balloontimeout,0]\![set,choicetimeout,0]\![set,autoscroll,disable]\0\b[2]\_q" + s + "\_q\e";
+
+	dictOptionalHeader["target"] = sender;
+	dictOptionalHeader["script_option"] = "nobreak,notranslate";
+	dictOptionalHeader["marker"] = version();
+
+	return s;
+}
+//------------------------------------------------------------------------------
 // 関数名：showTL
 // 機能　：指定したJSONオブジェクトからTLを表示
 // 引数　：title 表示タイトル
@@ -652,6 +674,8 @@ string showTL(string title, array arTL)
 		return sLikes;
 	if ((title == "conversations") && (sMessages != ""))
 		return sMessages;
+	if ((title == "local") && (sMessages != ""))
+		return sLocalTimeline;
 
 	string s;
 	s += showBottunSet(balloonWidth);
@@ -693,12 +717,15 @@ string showTL(string title, array arTL)
 			s += "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
 		}
 		// favoritedの場合スターを表示
-		if (isfavorited) {
-			path = _abspath("image\fam_star.png");
-			s += "\__q[AddStar," + postid + ",0]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
-		} else {
-			path = _abspath("image\fam_star_g.png");
-			s += "\__q[AddStar," + postid + ",1]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		if (title != "local")
+		{
+			if (isfavorited) {
+				path = _abspath("image\fam_star.png");
+				s += "\__q[AddStar," + postid + ",0]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+			} else {
+				path = _abspath("image\fam_star_g.png");
+				s += "\__q[AddStar," + postid + ",1]\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+			}
 		}
 		// protectedの場合アイコンを表示
 		if (isprotected) {
@@ -728,6 +755,8 @@ string showTL(string title, array arTL)
 		sLikes = s;
 	else if (title == "conversations")
 		sMessages = s;
+	else if (title == "local")
+		sLocalTimeline = s;
 
 	return s;
 }
@@ -752,6 +781,9 @@ string ViewPost(dict ref)
 		break;
 	  case "conversations":
 		s += showTL(title, arMentions);
+		break;
+	  case "local":
+		s += showTL(title, arLocalTimeline);
 		break;
 	  default:
 		break;
@@ -808,7 +840,7 @@ string showViewPost(string title, string name, string post, string sname, string
 		}
 	}
 	// WEBアイコン表示
-	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
+	if ((title == "home") || (title == "notifications") || (title == "favourites") || (title == "local")) {
 		path = _abspath("image\fam_world_go.png");
 		s += "\_a[" + posturl + "]" + "\_b[" + path + ",inline,--clipping=0 0 16 16]\_a";
 	}
@@ -875,8 +907,11 @@ TH_PopUpTL()
 	arHomeNext = getJsonTL(urlBase + "home_timeline");
 	_sleep(0.125);
 	arMentionsNext = getJsonTL(urlBase + "mentions");
+	_sleep(0.125);
+	arLocalTimeline = getJsonTL(getMastodonURL() + "api/v1/timelines/public?local=true");
 	sHome = "";
 	sMentions = "";
+	sLocalTimeline = "";
 	speakBySSTP("\C\![raiseplugin," + pluginname() + ",showPopUpTL]\e");
 }
 //-------------------------------------------------------
@@ -1000,6 +1035,14 @@ string ViewMessages(dict ref)
 {
 	return showMessagesTL();
 }
+//-------------------------------------------------------
+// 選択肢：ViewLocalTimeline
+// 内容　：LocalTimelineを表示
+//-------------------------------------------------------
+string ViewLocalTimeline(dict ref)
+{
+	return showLocalTL();
+}
 //******************************************************************************
 // 投稿
 //******************************************************************************
@@ -1046,6 +1089,9 @@ string OpenPostBar(dict ref)
 		break;
 	  case "conversations":
 		s += showTL(title, arMentions);
+		break;
+	  case "local":
+		s += showTL(title, arLocalTimeline);
 		break;
 	  default:
 		break;

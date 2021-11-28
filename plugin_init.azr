@@ -12,10 +12,12 @@ array arHomeNext;
 array arMentions;
 array arMentionsNext;
 array arLikes;
+array arLocalTimeline;
 string sHome;
 string sMentions;
 string sLikes;
 string sMessages;
+string sLocalTimeline;
 dict dUsers;
 dict dIconPath;
 dict dEmojiPath;
@@ -260,6 +262,10 @@ string OnGhostBoot(dict ref)
 //******************************************************************************
 // 固有設定
 //******************************************************************************
+string getMastodonURL()
+{
+	return "https://ukadon.shillest.net/";
+}
 string getPluginOAuthURL()
 {
 	return "http://nikolat.starfree.jp/ukadonyu/";
@@ -282,5 +288,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.0";
+	return "ukadonyu/1.1";
 }
