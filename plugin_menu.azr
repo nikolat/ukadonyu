@@ -674,7 +674,7 @@ string showTL(string title, array arTL)
 		return sLikes;
 	if ((title == "conversations") && (sMessages != ""))
 		return sMessages;
-	if ((title == "local") && (sMessages != ""))
+	if ((title == "local") && (sLocalTimeline != ""))
 		return sLocalTimeline;
 
 	string s;

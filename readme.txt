@@ -38,6 +38,7 @@
   comment       : トゥート用入力バー準備
   refresh       : 全ての取得情報を更新
   home          : メインとなるタイムラインを表示
+  local         : ローカルタイムラインを表示
   notifications : 返信画面を表示
   conversations : ダイレクトメッセージ画面を表示
   favourites    : お気に入り画面を表示
