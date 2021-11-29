@@ -75,23 +75,7 @@ TH_VerifyAccount()
 		if (dIconPath[sname] == nil)
 		{
 			string image_url = dAccount["avatar_static"];
-			array a = _strsplit(image_url, ".");
-			string extension = "." + a[_aryvn(a) - 1];
-			string tmpPath = _abspath("icon\tmp" + extension);
-			string pathAfter = _abspath("icon\icon_" + sname + ".png");
-			_http_download(image_url, tmpPath);
-			if (isImageFile(tmpPath))
-			{
-				resizeImage(tmpPath, pathAfter, 16, 16);
-				_fdelete(tmpPath);
-			}
-			else
-			{
-				_fdelete(tmpPath);
-				string defaultIconPath = _abspath("image\default.png");
-				_fcopy(defaultIconPath, pathAfter);
-			}
-			dIconPath += $(sname, pathAfter);
+			getIcon(image_url, sname);
 		}
 		selfName = name;
 		selfScreenName = sname;
@@ -336,16 +320,13 @@ string InputNumOfPostGet(dict ref)
 //-------------------------------------------------------
 clearLog()
 {
-	array arInit;
-	dict dInit;
-	arHome = arInit;
-	arMentions = arInit;
-	arLikes = arInit;
+	arHome = {};
+	arMentions = {};
+	arLikes = {};
 	sHome = "";
 	sMentions = "";
 	sLikes = "";
-	dIconPath = dInit;
-	dict dUsers = dInit;
+	dIconPath = ${};
 	selfName = "";
 	selfScreenName = "";
 	_create_thread("TH_VerifyAccount");
@@ -490,6 +471,7 @@ array getJsonTL(string url)
 		post = convertHtml(post);	// 実態参照変換
 		post = convertUnicode(post);
 		post = _strreplace(post, "<br />", "\\u003cbr /\\u003e");	//<br />は残したい
+		post = _strreplace(post, "</p><p>", "\\u003cbr /\\u003e");	//</p><p>は改行したい
 		post = _regex_replace(post, "<(\"[^\"]*\"|'[^']*'|[^'\">])*>", "");	//HTMLタグ除去
 		post = _strreplace(post, "\\u003cbr /\\u003e", "<br />");
 		name = convertUnicode(name);
@@ -738,10 +720,10 @@ string showTL(string title, array arTL)
 		numwords = _floor(balloonWidth / 6.14);
 		s += "\n[80]\f[height,-2]\_l[25,]";
 		array arEmoji = _dickeyget(dEmojiPath);
-		string escapedPost = escapeAllTags(makeShortText(post, numwords));
-		escapedPost = _regex_replace(escapedPost, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
-		escapedPost = _strreplace(escapedPost, "<br />", " ");//一覧は改行でなくスペースに
-		s += escapedPost;
+		post = _strreplace(post, "<br />", " ");//一覧は改行でなくスペースに
+		post = escapeAllTags(makeShortText(post, numwords));
+		post = _regex_replace(post, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+		s += post;
 		s += "\n\f[height,default]";
 	}
 	s += "\_n";
