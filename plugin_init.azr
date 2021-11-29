@@ -18,7 +18,6 @@ string sMentions;
 string sLikes;
 string sMessages;
 string sLocalTimeline;
-dict dUsers;
 dict dIconPath;
 dict dEmojiPath;
 string postidToReply;
@@ -288,5 +287,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.1";
+	return "ukadonyu/1.2";
 }
