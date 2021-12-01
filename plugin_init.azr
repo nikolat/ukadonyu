@@ -135,7 +135,7 @@ unloadPlugin()
 	array a = _fenum("icon")["file"];
 	for (int i = 0; a[i] != nil; i++)
 	{
-		if (_regex_match(a[i], "^(icon|emoji)_.*\.png$"))
+		if (_regex_match(a[i], "^(icon|emoji|image)_.*\.png$"))
 			_fdelete("icon\\" + a[i]);
 	}
 }
@@ -287,5 +287,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.2";
+	return "ukadonyu/1.3";
 }
