@@ -35,7 +35,7 @@ loadPlugin()
 }
 TH_LoadPlugin()
 {
-	// 定期Toot取得タイマセット
+	// 定期投稿取得タイマセット
 	string s = setTimerraise();
 	if (s != "")
 	{
@@ -45,7 +45,7 @@ TH_LoadPlugin()
 	// 認証
 	TH_VerifyAccount();
 	_sleep(1);
-	// Toot全取得
+	// 投稿全取得
 	TH_GetAllToots();
 	_sleep(1);
 	// PLUGINの更新を確認
@@ -287,5 +287,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.3";
+	return "ukadonyu/1.4";
 }

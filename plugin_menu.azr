@@ -367,7 +367,7 @@ string UpdateAll(dict ref)
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_UpdateAll
-// 機能　：Mastodonからhome, mention, likes, DMの投稿を取得してhomeを表示する
+// 機能　：サイトから全投稿を取得して表示する
 //------------------------------------------------------------------------------
 TH_UpdateAll()
 {
@@ -377,7 +377,7 @@ TH_UpdateAll()
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_GetAllToots
-// 機能　：Mastodonからhome, mention, likes, DMの投稿を取得する
+// 機能　：サイトから全投稿を取得する
 //------------------------------------------------------------------------------
 TH_GetAllToots()
 {
@@ -404,7 +404,7 @@ TH_GetAllToots()
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_UpdateHome
-// 機能　：Mastodonからhomeの投稿を取得する
+// 機能　：サイトからhomeの投稿を取得する
 //------------------------------------------------------------------------------
 TH_UpdateHome()
 {
@@ -425,7 +425,7 @@ TH_UpdateHome()
 }
 //------------------------------------------------------------------------------
 // 関数名：getJsonTL
-// 機能　：Mastodonから指定したJSONオブジェクトを取得する(必要な情報のみ取捨選択済)
+// 機能　：サイトから指定したJSONオブジェクトを取得する(必要な情報のみ取捨選択済)
 // 　　　　未取得のユーザアイコンも取得する
 // 引数　：url 取得先URL
 // 戻り値：JSONオブジェクト(配列型)
@@ -469,13 +469,14 @@ array getJsonTL(string url)
 			post = d["status"]["content"];
 		if (posturl == "")
 			posturl = d["status"]["url"];
-		post = convertHtml(post);	// 実態参照変換
 		post = convertUnicode(post);
+		post = convertHtml(post);	// 実態参照変換
 		post = _strreplace(post, "<br />", "\\u003cbr /\\u003e");	//<br />は残したい
 		post = _strreplace(post, "</p><p>", "\\u003cbr /\\u003e");	//</p><p>は改行したい
 		post = _regex_replace(post, "<(\"[^\"]*\"|'[^']*'|[^'\">])*>", "");	//HTMLタグ除去
 		post = _strreplace(post, "\\u003cbr /\\u003e", "<br />");
 		name = convertUnicode(name);
+		name = convertHtml(name);
 		if (dIconPath[sname] == nil)
 		{
 			string image_url = d["account"]["avatar_static"];
