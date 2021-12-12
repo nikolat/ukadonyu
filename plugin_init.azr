@@ -91,6 +91,8 @@ string openUpdateMenu()
 		{"UpdatePlugin", "OpenURL"}, 0);
 	s += menuItem("プラグインエクスプローラを開く",
 		{"UpdatePlugin", "OpenPluginExplorer"}, 100);
+	s += menuItem("NARファイルを直接ダウンロードして上書き更新",
+		{"UpdatePlugin", "DownloadNarFile"}, 100);
 	s += menuItem("キャンセル",
 		{"Menu_CANCEL"}, 200);
 	s  = "\0\_q" + s + "\_q\e";
@@ -116,6 +118,9 @@ string UpdatePlugin(dict ref)
 	  case "OpenPluginExplorer":
 		s = "\C\0\_q \_q\![open,pluginexplorer]\e";
 		break;
+	  case "DownloadNarFile":
+		s = "\![execute,install,url," + getnarurl() + "]\e";
+		break;
 	  default:
 		break;
 	}
@@ -126,6 +131,14 @@ string UpdatePlugin(dict ref)
 
 	return s;
 }
+string getnarurl()
+{
+	array arJson = _httpget(githublatesturl(), "utf8");
+	dict dRes = _json2azv(arJson);
+	string url = dRes["assets"][0]["browser_download_url"];
+	return url;
+}
+
 //******************************************************************************
 // プラグイン後始末処理
 //******************************************************************************
@@ -273,6 +286,10 @@ string craftmanurl()
 {
 	return "http://nikolat.starfree.jp/ukadonyu/";
 }
+string githublatesturl()
+{
+	return "https://api.github.com/repos/nikolat/ukadonyu/releases/latest";
+}
 string homeurl()
 {
 	return "https://raw.githubusercontent.com/nikolat/ukadonyu/main/";
@@ -287,5 +304,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.4";
+	return "ukadonyu/1.5";
 }
