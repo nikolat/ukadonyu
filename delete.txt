@@ -1,0 +1,2 @@
+image\fam_group_edit.png
+image\fam_group_go.png
