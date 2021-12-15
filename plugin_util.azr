@@ -57,7 +57,9 @@ string menuUserName(string title, array arId)
 	string r = makeJustText(title, numwords);
 	r = escapeAllTags(r);
 	array arEmoji = _dickeyget(dEmojiPath);
-	r = _regex_replace(r, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+	array arEmojiAlpha = _dickeyget(dEmojiPathAlpha);
+	r = _regex_replace(r, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--option=opaque,--clipping=0 0 16 16]");
+	r = _regex_replace(r, ":(" + JOIN(arEmojiAlpha, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
 	ret += "\f[bold,true]" + r + "\f[bold,false]";
 	ret += "\__q";
 	return ret;
@@ -413,6 +415,27 @@ int isImageFile(string imagePath)
 	_saoriunload(id);
 	string acceptRegexp = "BITMAP|JPEG|PNG|GIF";
 	return _regex_match(filetype, acceptRegexp);
+}
+//------------------------------------------------------------------------------
+// 関数名：hasAlphaValue
+// 機能　：指定したファイルが透過画像ファイルかどうか調べる
+// 引数　：imagePath 調べたいファイルの絶対パス
+// 戻り値：透過画像なら1 違ったら0
+//------------------------------------------------------------------------------
+int hasAlphaValue(string imagePath)
+{
+	if (_substr(imagePath, _strlen(imagePath) - 4, 4) != ".png")
+		return 0;
+	string id = "img";
+	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
+	long i = _saorirequest(id, "PNGAtoDIB", imagePath)["Result"];
+	if (i != 0)
+		_saorirequest(id, "DeleteDIB", i);
+	_saoriunload(id);
+	if (i == 0)
+		return 0;
+	else
+		return 1;
 }
 //------------------------------------------------------------------------------
 // 関数名：resizeImage

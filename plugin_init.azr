@@ -20,6 +20,7 @@ string sMessages;
 string sLocalTimeline;
 dict dIconPath;
 dict dEmojiPath;
+dict dEmojiPathAlpha;
 string postidToReply;
 string reservedScript;
 int isInit;

@@ -553,8 +553,10 @@ getEmoji(string image_url, string strEmoji)
 	string pathAfter = _abspath("icon\emoji_" + strEmoji + ".png");
 	_sleep(0.125);
 	_http_download(image_url, tmpPath);
+	int hasAlpha = 0;
 	if (isImageFile(tmpPath))
 	{
+		hasAlpha = hasAlphaValue(tmpPath);
 		resizeImage(tmpPath, pathAfter, 16, 16);
 		if (_substr(strEmoji, 0, 6) == "stamp_")
 		{
@@ -569,7 +571,10 @@ getEmoji(string image_url, string strEmoji)
 		string defaultIconPath = _abspath("image\default.png");
 		_fcopy(defaultIconPath, pathAfter);
 	}
-	dEmojiPath += $(strEmoji, pathAfter);
+	if (hasAlpha)
+		dEmojiPathAlpha += $(strEmoji, pathAfter);
+	else
+		dEmojiPath += $(strEmoji, pathAfter);
 }
 string getImage(string image_url)
 {
@@ -762,9 +767,11 @@ string showTL(string title, array arTL)
 		numwords = _floor(balloonWidth / 6.14);
 		s += "\n[80]\f[height,-2]\_l[25,]";
 		array arEmoji = _dickeyget(dEmojiPath);
+		array arEmojiAlpha = _dickeyget(dEmojiPathAlpha);
 		post = _strreplace(post, "<br />", " ");//一覧は改行でなくスペースに
 		post = escapeAllTags(makeShortText(post, numwords));
 		post = _regex_replace(post, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--option=opaque,--clipping=0 0 16 16]");
+		post = _regex_replace(post, ":(" + JOIN(arEmojiAlpha, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
 		s += post;
 		s += "\n\f[height,default]";
 	}
@@ -886,9 +893,11 @@ string showViewPost(string title, string name, string post, string sname, string
 		}
 	}
 	array arEmoji = _dickeyget(dEmojiPath);
+	array arEmojiAlpha = _dickeyget(dEmojiPathAlpha);
 	// ユーザ名表示
 	string escapedName = escapeAllTags(name);
 	escapedName = _regex_replace(escapedName, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--option=opaque,--clipping=0 0 16 16]");
+	escapedName = _regex_replace(escapedName, ":(" + JOIN(arEmojiAlpha, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
 	s += " << \f[bold,true]" + escapedName + "\f[bold,false] >> ";
 	// POST表示
 	string escapedPost = escapeAllTags(post);
@@ -896,8 +905,11 @@ string showViewPost(string title, string name, string post, string sname, string
 		, ":(" + JOIN(arEmoji, "|") + "):"
 		, "\\\\_b[icon\\\\emoji_\\1.png,inline,--option=opaque,--clipping=0 0 16 16]");
 	escapedPost = _regex_replace(escapedPost
-		, "\\\\_b\\[icon\\\\emoji_stamp_(.+?)\\.png,inline,--option=opaque,--clipping=0 0 16 16\\]"
-		, "\\\\_b[icon\\\\emoji_stamp_\\1_64x64.png,inline,--option=opaque,--clipping=0 0 64 64]");
+		, ":(" + JOIN(arEmojiAlpha, "|") + "):"
+		, "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
+	escapedPost = _regex_replace(escapedPost
+		, "\\\\_b\\[icon\\\\emoji_stamp_(.+?)\\.png,inline(,--option=opaque)?,--clipping=0 0 16 16\\]"
+		, "\\\\_b[icon\\\\emoji_stamp_\\1_64x64.png,inline\\2,--clipping=0 0 64 64]");
 	escapedPost = _strreplace(escapedPost, "<br />", "\\n");
 	if (isboost) {
 		s += "\n\_l[20,]Boost this post ? \__q[BoostPost," + postid + "] Y \__q / \__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,0,0," + images_arg + "] N \__q"
