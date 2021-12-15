@@ -106,7 +106,7 @@ string showBottunSet(int width)
 	path = _abspath("image\fam_user_comment.png");
 	s += "\_l[" + (ofs - 200) + ",0]\__q[OpenPostBar,]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
-	path = _abspath("image\fam_arrow_refresh.png");
+	path = _abspath("image\fam_table_refresh.png");
 	s += "\_l[" + (ofs - 175) + ",0]\__q[UpdateAll]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
 	path = _abspath("image\fam_house.png");
@@ -115,7 +115,7 @@ string showBottunSet(int width)
 	path = _abspath("image\fam_group.png");
 	s += "\_l[" + (ofs - 125) + ",0]\__q[ViewLocalTimeline]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
-	path = _abspath("image\fam_group_go.png");
+	path = _abspath("image\fam_bell.png");
 	s += "\_l[" + (ofs - 100) + ",0]\__q[ViewMentions]";
 	s += "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
 	path = _abspath("image\fam_email.png");
@@ -758,7 +758,10 @@ string showTL(string title, array arTL)
 		}
 		// protectedの場合アイコンを表示
 		if (isprotected) {
-			path = _abspath("image\fam_lock.png");
+			if (protected == "direct")
+				path = _abspath("image\fam_email.png");
+			else
+				path = _abspath("image\fam_lock.png");
 			s += "\_b[" + path + ",inline,--clipping=0 0 16 16]";
 		}
 		// 名前表示
@@ -862,6 +865,17 @@ string showViewPost(string title, string name, string post, string sname, string
 	else
 		s += "\_l[0,0]\n\n[half]"
 			+ "\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
+	// Boostアイコン表示
+	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
+		if (isprotected) {
+			path = _abspath("image\fam_lock.png");
+			s += "\_b[" + path + ",inline,--clipping=0 0 16 16]";
+		} else {
+			path = _abspath("image\fam_arrow_refresh.png");
+			s += "\__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,1,0," + images_arg + "]"
+				+ "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
+		}
+	}
 	// スター表示
 	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
 		if (isfavorited) {
@@ -881,20 +895,9 @@ string showViewPost(string title, string name, string post, string sname, string
 	path = _abspath("image\fam_pencil_go.png");
 	s += "\__q[TextCopy," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + "," + isprotected + ",0,0," + images_arg + "]"
 		+ "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
-	// Boostアイコン表示
-	if ((title == "home") || (title == "notifications") || (title == "favourites")) {
-		if (isprotected) {
-			path = _abspath("image\fam_lock.png");
-			s += "\_b[" + path + ",inline,--clipping=0 0 16 16]";
-		} else {
-			path = _abspath("image\fam_group_edit.png");
-			s += "\__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,1,0," + images_arg + "]"
-				+ "\_b[" + path + ",inline,--clipping=0 0 16 16]\__q";
-		}
-	}
+	// ユーザ名表示
 	array arEmoji = _dickeyget(dEmojiPath);
 	array arEmojiAlpha = _dickeyget(dEmojiPathAlpha);
-	// ユーザ名表示
 	string escapedName = escapeAllTags(name);
 	escapedName = _regex_replace(escapedName, ":(" + JOIN(arEmoji, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--option=opaque,--clipping=0 0 16 16]");
 	escapedName = _regex_replace(escapedName, ":(" + JOIN(arEmojiAlpha, "|") + "):", "\\\\_b[icon\\\\emoji_\\1.png,inline,--clipping=0 0 16 16]");
