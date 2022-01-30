@@ -29,6 +29,9 @@ int isInit;
 //******************************************************************************
 loadPlugin()
 {
+	//デフォルトサーバーをセット
+	if (dictSaveData["server_url"] == nil)
+		dictSaveData += $("server_url", getDefaultMastodonServerURL());
 	// reservedScriptを設定してOnGhostBootでnotifypluginを実行
 	// sender, hwnd, ownedSSTPidを取得して後続のDSSTPを実行できるようにする
 	isInit = 1;
@@ -275,7 +278,7 @@ string OnGhostBoot(dict ref)
 //******************************************************************************
 // 固有設定
 //******************************************************************************
-string getMastodonURL()
+string getDefaultMastodonServerURL()
 {
 	return "https://ukadon.shillest.net/";
 }
@@ -305,5 +308,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.6";
+	return "ukadonyu/1.7";
 }

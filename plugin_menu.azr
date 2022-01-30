@@ -59,13 +59,11 @@ TH_InitPlugin()
 //------------------------------------------------------------------------------
 TH_VerifyAccount()
 {
-	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
 	string oauth_token = dictSaveData["oauth_token"];
-	if ((api_proxy_url == "") || (oauth_token == ""))
+	if ((server_url == "") || (oauth_token == ""))
 		return;
-	string url = api_proxy_url
-		+ "?oauth_token=" + oauth_token
-		+ "&api=verify_credentials";
+	string url = server_url + "api/v1/accounts/verify_credentials?access_token=" + oauth_token;
 	dict dAccount = _json2azv(_httpget(url, "utf8"));
 	string name = dAccount["display_name"];
 	if (name != "")
@@ -179,12 +177,12 @@ string showSettingMenu()
 	}
 	s += "\n\n";
 	string str;
-	// OAuth_Token
-	str = "oauth_token         : " + dictSaveData["oauth_token"];
+	// Access Token
+	str = "Access Token        : " + dictSaveData["oauth_token"];
 	s += menuItem(str, {"Config", "OAuth_Token"}, 0);
-	// API Proxy URL
-	str = "API Proxy URL       : " + dictSaveData["api_proxy_url"];
-	s += menuItem(str, {"Config", "API_Proxy_URL"}, 100);
+	// Server URL
+	str = "Server URL          : " + dictSaveData["server_url"];
+	s += menuItem(str, {"Config", "Server_URL"}, 100);
 	// TL get interval
 	if (dictSaveData["TL_get_interval"] > 0) {
 		str  = "TL get interval     : " + fillSpace(dictSaveData["TL_get_interval"]) + " min";
@@ -199,8 +197,8 @@ string showSettingMenu()
 		str  = "num of post getting :  20 post";
 	}
 	s += menuItem(str, {"Config", "NumOfPostGet"}, 100);
-	// get OAuth token
-	str = "get OAuth token (open browser)";
+	// get Access Token
+	str = "get Access Token (open browser)";
 	s += menuItem(str, {"OpenOAuth"}, 150);
 
 	s += "\_n\_q\e";
@@ -241,8 +239,8 @@ string Config(dict ref)
 	  case "OAuth_Token":
 		s += "\![open,inputbox," + selectedId + ",0," + dictSaveData["oauth_token"] + "]";
 		break;
-	  case "API_Proxy_URL":
-		s += "\![open,inputbox," + selectedId + ",0," + dictSaveData["api_proxy_url"] + "]";
+	  case "Server_URL":
+		s += "\![open,inputbox," + selectedId + ",0," + dictSaveData["server_url"] + "]";
 		break;
 	  case "PopupTL":
 		s += "\![open,sliderinput," + selectedId + ",0," + dictSaveData["TL_get_interval"] + ",0,30]";
@@ -271,7 +269,7 @@ string closeAllInputBox()
 	string s;
 	s += "\![close,inputbox,Post]";
 	s += "\![close,inputbox,OAuth_Token]";
-	s += "\![close,inputbox,API_Proxy_URL]";
+	s += "\![close,inputbox,Server_URL]";
 	s += "\![close,inputbox,PopupTL]";
 	s += "\![close,inputbox,NumOfPostGet]";
 	return s;
@@ -288,12 +286,12 @@ string InputOAuth_Token(dict ref)
 	clearLog();
 	return showSettingMenu();
 }
-string InputAPI_Proxy_URL(dict ref)
+string InputServer_URL(dict ref)
 {
-	if (dictSaveData["api_proxy_url"] == nil)
-		dictSaveData += $("api_proxy_url", ref["Reference1"]);
+	if (dictSaveData["server_url"] == nil)
+		dictSaveData += $("server_url", ref["Reference1"]);
 	else
-		dictSaveData["api_proxy_url"] = ref["Reference1"];
+		dictSaveData["server_url"] = ref["Reference1"];
 	return showSettingMenu();
 }
 string InputPopupTL(dict ref)
@@ -381,23 +379,21 @@ TH_UpdateAll()
 //------------------------------------------------------------------------------
 TH_GetAllToots()
 {
-	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
 	string oauth_token = dictSaveData["oauth_token"];
 	_sleep(0.125);
-	arLocalTimeline = getJsonTL(getMastodonURL() + "api/v1/timelines/public?local=true");
-	if ((api_proxy_url == "") || (oauth_token == ""))
+	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true");
+	if ((server_url == "") || (oauth_token == ""))
 		return;
-	string urlBase = api_proxy_url
-		+ "?oauth_token=" + oauth_token;
+	string param = "access_token=" + oauth_token;
 	if (dictSaveData["num_of_post_get"] != nil)
-		urlBase += "&count=" + dictSaveData["num_of_post_get"];
-	urlBase += "&api=";
+		param += "&count=" + dictSaveData["num_of_post_get"];
 	_sleep(0.125);
-	arHome = getJsonTL(urlBase + "home_timeline");
+	arHome = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	_sleep(0.125);
-	arMentions = getJsonTL(urlBase + "mentions");
+	arMentions = getJsonTL(server_url + "api/v1/notifications?exclude_types[]=follow&exclude_types[]=favourite&exclude_types[]=reblog&" + param);
 	_sleep(0.125);
-	arLikes = getJsonTL(urlBase + "favorites");
+	arLikes = getJsonTL(server_url + "api/v1/favourites?" + param);
 	sHome = "";
 	sMentions = "";
 	sLikes = "";
@@ -409,16 +405,14 @@ TH_GetAllToots()
 TH_UpdateHome()
 {
 	_sleep(1);	//投稿が反映されるまでわりと時間かかる
-	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
 	string oauth_token = dictSaveData["oauth_token"];
-	if ((api_proxy_url == "") || (oauth_token == ""))
+	if ((server_url == "") || (oauth_token == ""))
 		return;
-	string urlBase = api_proxy_url
-		+ "?oauth_token=" + oauth_token;
+	string param = "access_token=" + oauth_token;
 	if (dictSaveData["num_of_post_get"] != nil)
-		urlBase += "&count=" + dictSaveData["num_of_post_get"];
-	urlBase += "&api=";
-	arHome = getJsonTL(urlBase + "home_timeline");
+		param += "&count=" + dictSaveData["num_of_post_get"];
+	arHome = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	sHome = "";
 
 	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
@@ -947,21 +941,19 @@ string PopUpTL(dict ref)
 //-------------------------------------------------------
 TH_PopUpTL()
 {
-	string api_proxy_url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
 	string oauth_token = dictSaveData["oauth_token"];
-	if ((api_proxy_url == "") || (oauth_token == ""))
+	if ((server_url == "") || (oauth_token == ""))
 		return;
-	string urlBase = api_proxy_url
-		+ "?oauth_token=" + oauth_token;
+	string param = "access_token=" + oauth_token;
 	if (dictSaveData["num_of_post_get"] != nil)
-		urlBase += "&count=" + dictSaveData["num_of_post_get"];
-	urlBase += "&api=";
+		param += "&count=" + dictSaveData["num_of_post_get"];
 	_sleep(0.125);
-	arHomeNext = getJsonTL(urlBase + "home_timeline");
+	arHomeNext = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	_sleep(0.125);
-	arMentionsNext = getJsonTL(urlBase + "mentions");
+	arMentionsNext = getJsonTL(server_url + "api/v1/notifications?exclude_types[]=follow&exclude_types[]=favourite&exclude_types[]=reblog&" + param);
 	_sleep(0.125);
-	arLocalTimeline = getJsonTL(getMastodonURL() + "api/v1/timelines/public?local=true");
+	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true");
 	sHome = "";
 	sMentions = "";
 	sLocalTimeline = "";
@@ -1168,18 +1160,18 @@ string InputPost(dict ref)
 	string post = ref["Reference1"];
 	string postid = postidToReply;
 	postidToReply = "";
-	string url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
+	string url = server_url + "api/v1/statuses?access_token=" + dictSaveData["oauth_token"];
 	string aid = "MastodonPost";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
-		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
-		+ ",--param=api=update"
 		+ ",--param=status=" + escapeText(post);
+		+ ",--param=visibility=public"
 	if (postid != "")
-		s += ",--param=in_reply_to_status_id=" + postid;
+		s += ",--param=in_reply_to_id=" + postid;
 	s += "]\e";
 
 	dictOptionalHeader["target"] = sender;
@@ -1196,16 +1188,15 @@ string InputPost(dict ref)
 string BoostPost(dict ref)
 {
 	string postid = ref["Reference2"];
-	string url = dictSaveData["api_proxy_url"];
+	string server_url = dictSaveData["server_url"];
+	string url = server_url + "api/v1/statuses/" + postid + "/reblog?access_token=" + dictSaveData["oauth_token"];
 	string aid = "MastodonPost";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
-		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
-		+ ",--param=api=retweet"
-		+ ",--param=postid=" + postid + "]\e";
+		+ "]\e";
 
 	dictOptionalHeader["target"] = sender;
 	dictOptionalHeader["script_option"] = "nobreak,notranslate";
@@ -1223,22 +1214,20 @@ string AddStar(dict ref)
 {
 	string postid = ref["Reference2"];
 	int addstar = ref["Reference3"];
-	string resource;
+	string command;
 	if (addstar)
-		resource = "create";
+		command = "favourite";
 	else
-		resource = "destroy";
-	string url = dictSaveData["api_proxy_url"];
+		command = "unfavourite";
+	string server_url = dictSaveData["server_url"];
+	string url = server_url + "api/v1/statuses/" + postid + "/" + command + "?access_token=" + dictSaveData["oauth_token"];
 	string aid = "MastodonAddStar";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
-		+ ",--param=oauth_token=" + dictSaveData["oauth_token"]
-		+ ",--param=api=favorites"
-		+ ",--param=resource=" + resource
-		+ ",--param=postid=" + postid + "]\e";
+		+ "]\e";
 
 	dictOptionalHeader["target"] = sender;
 	dictOptionalHeader["script_option"] = "nobreak,notranslate";
