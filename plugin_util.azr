@@ -392,6 +392,7 @@ speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
 		,strHwnd
 		,"result"
 		,"NOTIFY SSTP/1.1"
+		,"Charset: Shift_JIS"
 		,"Sender: HandUtil"
 		,"Event: On" + pluginnameen() + "SSTP"
 		,"Script: " + script

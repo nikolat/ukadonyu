@@ -51,7 +51,7 @@ TH_InitPlugin()
 		funcName = "showHomeTL";
 	else
 		funcName = "showSettingMenu";
-	speakBySSTP("\![raiseplugin," + pluginname() + "," + funcName + "]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + "," + funcName + "]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_VerifyAccount
@@ -371,7 +371,7 @@ TH_UpdateAll()
 {
 	_sleep(0.5);	//ちょっと待たないと固まったように見える
 	TH_GetAllToots();
-	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + ",showHomeTL]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_GetAllToots
@@ -415,7 +415,7 @@ TH_UpdateHome()
 	arHome = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	sHome = "";
 
-	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + ",showHomeTL]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：getJsonTL
@@ -957,7 +957,7 @@ TH_PopUpTL()
 	sHome = "";
 	sMentions = "";
 	sLocalTimeline = "";
-	speakBySSTP("\C\![raiseplugin," + pluginname() + ",showPopUpTL]\e");
+	speakBySSTP("\C\![raiseplugin," + pluginid() + ",showPopUpTL]\e");
 }
 //-------------------------------------------------------
 // 関数名：showPopUpTL
