@@ -22,8 +22,8 @@ file,image/fam_wrench.pnga137eb4441860564ce1655357af26de8size=610date=2012-12
 file,install.txt4935b988489697e2f6adc3441da4ef4csize=69date=2012-12-21T00:00:00
 file,licence.txt56e80a03d5f3387bd311b9348e0c8a30size=1919date=2012-12-21T00:00:00
 file,main.azr6a9a91bc6d3c053c73deca7e82b72433size=2943date=2012-12-21T00:00:00
-file,plugin_init.azrfa30037a3a2f8c1eac7a2b6707e2a3c6size=8942date=2012-12-21T00:00:00
-file,plugin_menu.azr700302ba43dc6d5bd371d1cf7782260esize=42641date=2012-12-21T00:00:00
+file,plugin_init.azre6129331de49dc3135b187cc982e7c9bsize=9006date=2012-12-21T00:00:00
+file,plugin_menu.azrafb3d62595ce64c31b5fb1995d72d74fsize=42690date=2012-12-21T00:00:00
 file,plugin_util.azr569ce61547e67ff64a3dbe02247bea0csize=15632date=2012-12-21T00:00:00
 file,readme.txt235b06f25abdad1c6b814ab40c348836size=3868date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil.dlld382e237a4b365a302b281664d9e9d36size=38400date=2012-12-21T00:00:00
