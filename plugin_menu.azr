@@ -51,7 +51,7 @@ TH_InitPlugin()
 		funcName = "showHomeTL";
 	else
 		funcName = "showSettingMenu";
-	speakBySSTP("\![raiseplugin," + pluginname() + "," + funcName + "]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + "," + funcName + "]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_VerifyAccount
@@ -65,11 +65,14 @@ TH_VerifyAccount()
 		return;
 	string url = server_url + "api/v1/accounts/verify_credentials?access_token=" + oauth_token;
 	dict dAccount = _json2azv(_httpget(url, "utf8"));
-	string name = dAccount["display_name"];
-	if (name != "")
+	string sname = dAccount["username"];
+	if (sname != "")
 	{
-		name = convertUnicode(name);
-		string sname = dAccount["username"];
+		string name = dAccount["display_name"];
+		if (name != "")
+			name = convertUnicode(name);
+		else
+			name = sname;
 		if (dIconPath[sname] == nil)
 		{
 			string image_url = dAccount["avatar_static"];
@@ -220,7 +223,7 @@ string setTimerraise()
 	if (dictSaveData["TL_get_interval"] >= 0)
 	{
 		s += "\![timerraiseplugin," + (60 * 1000 * dictSaveData["TL_get_interval"]) + ",0,"
-			+ pluginname() + ",PopUpTL]";
+			+ pluginid() + ",PopUpTL]";
 	}
 	return s;
 }
@@ -371,7 +374,7 @@ TH_UpdateAll()
 {
 	_sleep(0.5);	//ちょっと待たないと固まったように見える
 	TH_GetAllToots();
-	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + ",showHomeTL]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：TH_GetAllToots
@@ -415,7 +418,7 @@ TH_UpdateHome()
 	arHome = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	sHome = "";
 
-	speakBySSTP("\![raiseplugin," + pluginname() + ",showHomeTL]\e");
+	speakBySSTP("\![raiseplugin," + pluginid() + ",showHomeTL]\e");
 }
 //------------------------------------------------------------------------------
 // 関数名：getJsonTL
@@ -957,7 +960,7 @@ TH_PopUpTL()
 	sHome = "";
 	sMentions = "";
 	sLocalTimeline = "";
-	speakBySSTP("\C\![raiseplugin," + pluginname() + ",showPopUpTL]\e");
+	speakBySSTP("\C\![raiseplugin," + pluginid() + ",showPopUpTL]\e");
 }
 //-------------------------------------------------------
 // 関数名：showPopUpTL
@@ -1098,7 +1101,7 @@ string ViewLocalTimeline(dict ref)
 string OpenPostBar(dict ref)
 {
 	if (selfScreenName == "")
-		return "";
+		return showSettingMenu();
 	string sname = ref["Reference5"];
 	string postid = ref["Reference6"];
 	postidToReply = postid;
