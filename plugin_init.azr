@@ -312,5 +312,5 @@ string pluginname()
 }
 string version()
 {
-	return "ukadonyu/1.8";
+	return "ukadonyu/1.9";
 }
