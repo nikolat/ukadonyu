@@ -65,11 +65,14 @@ TH_VerifyAccount()
 		return;
 	string url = server_url + "api/v1/accounts/verify_credentials?access_token=" + oauth_token;
 	dict dAccount = _json2azv(_httpget(url, "utf8"));
-	string name = dAccount["display_name"];
-	if (name != "")
+	string sname = dAccount["username"];
+	if (sname != "")
 	{
-		name = convertUnicode(name);
-		string sname = dAccount["username"];
+		string name = dAccount["display_name"];
+		if (name != "")
+			name = convertUnicode(name);
+		else
+			name = sname;
 		if (dIconPath[sname] == nil)
 		{
 			string image_url = dAccount["avatar_static"];
