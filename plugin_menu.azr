@@ -458,6 +458,8 @@ array getJsonTL(string url)
 		string post = d["content"];
 		string posturl = d["url"];
 		array images = {};
+		if (name == "")
+			name = sname;
 		if (protected == "")
 			protected = d["status"]["visibility"];
 		if (favorited == "")
