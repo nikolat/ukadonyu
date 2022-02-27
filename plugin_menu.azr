@@ -220,7 +220,7 @@ string setTimerraise()
 	if (dictSaveData["TL_get_interval"] >= 0)
 	{
 		s += "\![timerraiseplugin," + (60 * 1000 * dictSaveData["TL_get_interval"]) + ",0,"
-			+ pluginname() + ",PopUpTL]";
+			+ pluginid() + ",PopUpTL]";
 	}
 	return s;
 }
