@@ -1,0 +1,5 @@
+﻿
+/icon/*
+!/icon/icon.txt
+/savedata.adb
+/profile/

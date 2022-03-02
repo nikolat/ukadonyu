@@ -60,7 +60,9 @@ TH_LoadPlugin()
 TH_CheckUpdatePlugin()
 {
 	string url = homeurl() + "readme.txt";
-	array arJson = _httpget(url, "utf8");
+	array arJson = httpget(url, "utf8");
+	if (_aryvn(arJson) == 0)
+		return;
 	string versionNext;
 	string reg = "^.*[0-9]+-[0-9]+-[0-9]+  Ver([0-9]\.[0-9])  .*$";
 	for (int i = 0; i < _aryvn(arJson); i++)
@@ -137,7 +139,9 @@ string UpdatePlugin(dict ref)
 }
 string getnarurl()
 {
-	array arJson = _httpget(githublatesturl(), "utf8");
+	array arJson = httpget(githublatesturl(), "utf8");
+	if (_aryvn(arJson) == 0)
+		return "";
 	dict dRes = _json2azv(arJson);
 	string url = dRes["assets"][0]["browser_download_url"];
 	return url;

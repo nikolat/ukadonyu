@@ -352,11 +352,9 @@ int getBalloonWidth(string strHwnd)
 	int width = -1;
 	if (strHwnd == "")
 		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
-	string id = "hand";
-	_saoriload("saori\HandUtil\HandUtil.dll", id);
 	// プロパティシステムにアクセス
 	dict d = _saorirequest(
-		id
+		"HandUtil"
 		,"DSSTPSend"
 		,strHwnd
 		,"result"
@@ -367,7 +365,6 @@ int getBalloonWidth(string strHwnd)
 	);
 	if (_strstr(d["Value0"], "SSTP/1.1 200") >= 0)
 		width = d["Value1"];
-	_saoriunload(id);
 	return width;
 }
 //------------------------------------------------------------------------------
@@ -383,11 +380,9 @@ speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
 		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
 	if (strOwnedSSTPid == "")
 		strOwnedSSTPid = ownedSSTPid;	// グローバル変数：PLUGIN実行者ID
-	string id = "hand";
-	_saoriload("saori\HandUtil\HandUtil.dll", id);
 	// SakuraScriptの再生
 	dict d = _saorirequest(
-		id
+		"HandUtil"
 		,"DSSTPSend"
 		,strHwnd
 		,"result"
@@ -399,7 +394,35 @@ speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
 		,"Option: notranslate"
 		,"ID: " + strOwnedSSTPid
 	);
-	_saoriunload(id);
+}
+//------------------------------------------------------------------------------
+// 関数名：httpget
+// 機能　：URLで指定したファイルを取得
+// 引数　：url 取得対象URL
+// 引数　：charset 文字コード
+// 戻り値：取得したテキストの要素数1の配列
+//------------------------------------------------------------------------------
+array httpget(string url, string charset)
+{
+	if (!(int)_saorirequest("httpc")["Result"])
+		return {};
+	dict d = _saorirequest("httpc", url, "tmp.txt");
+	array a = _readtext("saori\httpc\tmp.txt", charset);
+	int r = _fdelete("saori\httpc\tmp.txt");
+	return a;
+}
+//------------------------------------------------------------------------------
+// 関数名：http_download
+// 機能　：URLで指定したファイルをダウンロード
+// 引数　：url ダウンロード対象URL
+// 引数　：filepath 保存先ファイルのSHIORIからの相対パス
+// 戻り値：1(成功)/0(失敗)
+//------------------------------------------------------------------------------
+int http_download(string url, string filepath)
+{
+	if (!(int)_saorirequest("httpc")["Result"])
+		return 0;
+	return (int)_saorirequest("httpc", url, "..\..\\" + filepath)["Result"];
 }
 //------------------------------------------------------------------------------
 // 関数名：isImageFile
@@ -409,10 +432,7 @@ speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
 //------------------------------------------------------------------------------
 int isImageFile(string imagePath)
 {
-	string id = "img";
-	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
-	string filetype = _saorirequest(id, "GetImageType", imagePath)["Result"];
-	_saoriunload(id);
+	string filetype = _saorirequest("imgctl_saori", "GetImageType", imagePath)["Result"];
 	string acceptRegexp = "BITMAP|JPEG|PNG|GIF";
 	return _regex_match(filetype, acceptRegexp);
 }
@@ -426,12 +446,9 @@ int hasAlphaValue(string imagePath)
 {
 	if (_substr(imagePath, _strlen(imagePath) - 4, 4) != ".png")
 		return 0;
-	string id = "img";
-	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
-	long i = _saorirequest(id, "PNGAtoDIB", imagePath)["Result"];
+	long i = _saorirequest("imgctl_saori", "PNGAtoDIB", imagePath)["Result"];
 	if (i != 0)
-		_saorirequest(id, "DeleteDIB", i);
-	_saoriunload(id);
+		_saorirequest("imgctl_saori", "DeleteDIB", i);
 	if (i == 0)
 		return 0;
 	else
@@ -447,13 +464,10 @@ int hasAlphaValue(string imagePath)
 //------------------------------------------------------------------------------
 resizeImage(string pathBefore, string pathAfter, int width, int height)
 {
-	string id = "img";
-	_saoriload("saori\imgctl_saori\imgctl_saori.dll", id);
-	long i = _saorirequest(id, "ToDIB", pathBefore)["Result"];
-	_saorirequest(id, "ResizeDIB", i, width, height);
-	_saorirequest(id, "DIBtoPNG", pathAfter, i, 0);
-	_saorirequest(id, "DeleteDIB", i);
-	_saoriunload(id);
+	long i = _saorirequest("imgctl_saori", "ToDIB", pathBefore)["Result"];
+	_saorirequest("imgctl_saori", "ResizeDIB", i, width, height);
+	_saorirequest("imgctl_saori", "DIBtoPNG", pathAfter, i, 0);
+	_saorirequest("imgctl_saori", "DeleteDIB", i);
 }
 //------------------------------------------------------------------------------
 // 関数名：textCopy2
@@ -462,10 +476,7 @@ resizeImage(string pathBefore, string pathAfter, int width, int height)
 //------------------------------------------------------------------------------
 textCopy2(string text)
 {
-	string id = "textcopy2";
-	_saoriload("saori\textcopy2\textcopy2.dll", id);
-	_saorirequest(id, text);
-	_saoriunload(id);
+	_saorirequest("textcopy2", text);
 }
 //******************************************************************************
 // GHOSTから利用する関数
