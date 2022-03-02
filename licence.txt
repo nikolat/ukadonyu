@@ -16,6 +16,10 @@
     浮子屋本舗
       http://ukiya.sakura.ne.jp/
 
+  httpc.dll
+    satoriya-shiori
+      https://github.com/ponapalt/satoriya-shiori
+
   imgctl.dll
     ルーチェ's Homepage
       http://www.ruche-home.net/
