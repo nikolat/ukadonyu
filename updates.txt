@@ -20,12 +20,12 @@ file,image/fam_user_comment.png05d28091baa2679213ecb083c0a24f22size=743date=2
 file,image/fam_world_go.pngd91bed5823c2e2fd8b6e361f036fae26size=944date=2012-12-21T00:00:00
 file,image/fam_wrench.pnga137eb4441860564ce1655357af26de8size=610date=2012-12-21T00:00:00
 file,install.txt4935b988489697e2f6adc3441da4ef4csize=69date=2012-12-21T00:00:00
-file,licence.txt56e80a03d5f3387bd311b9348e0c8a30size=1919date=2012-12-21T00:00:00
+file,licence.txt0e2bd521095723e7051a85d53d9bea86size=2002date=2012-12-21T00:00:00
 file,main.azr712b1eb27070ac8aad88ce22c45c686csize=3285date=2012-12-21T00:00:00
-file,plugin_init.azrba9609d0894e3004d9b24ce94dc47d2dsize=9079date=2012-12-21T00:00:00
+file,plugin_init.azr84f4d7d02fba0eb8390c7fd72b59651bsize=9079date=2012-12-21T00:00:00
 file,plugin_menu.azr207f9a158b138cfde25cc28794865cc8size=42972date=2012-12-21T00:00:00
 file,plugin_util.azre3e18c5ed4eb60e683aab5df6ea4a600size=16420date=2012-12-21T00:00:00
-file,readme.txtdf935e2df31e5b5a53b0ce9734e86917size=4181date=2012-12-21T00:00:00
+file,readme.txt298c4e14289b53568f5e9f60d7b5a98asize=4379date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil.dlld382e237a4b365a302b281664d9e9d36size=38400date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil_readme.txtc6c761a051d6970b022e1aaffe24d11asize=4362date=2012-12-21T00:00:00
 file,saori/httpc/httpc.dlld0930cb53f63ad98e0f59618e8b5ec77size=172032date=2012-12-21T00:00:00
