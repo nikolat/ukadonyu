@@ -9,6 +9,11 @@ load()
 	_script_load("plugin_init");
 	_script_load("plugin_menu");
 	_script_load("plugin_util");
+
+	_saoriload("saori\HandUtil\HandUtil.dll", "HandUtil");
+	_saoriload("saori\httpc\httpc.dll", "httpc");
+	_saoriload("saori\imgctl_saori\imgctl_saori.dll", "imgctl_saori");
+	_saoriload("saori\textcopy2\textcopy2.dll", "textcopy2");
 	// オプションヘッダ初期化
 	resetOptionalHeader();
 	// セーブデータ読み込み
@@ -21,6 +26,11 @@ unload()
 {
 	// セーブデータ保存
 	_vsave("savedata", dictSaveData);
+
+	_saoriunload("HandUtil");
+	_saoriunload("httpc");
+	_saoriunload("imgctl_saori");
+	_saoriunload("textcopy2");
 	// プラグイン後始末処理
 	unloadPlugin();
 }

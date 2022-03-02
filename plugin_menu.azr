@@ -64,7 +64,10 @@ TH_VerifyAccount()
 	if ((server_url == "") || (oauth_token == ""))
 		return;
 	string url = server_url + "api/v1/accounts/verify_credentials?access_token=" + oauth_token;
-	dict dAccount = _json2azv(_httpget(url, "utf8"));
+	array arJson = httpget(url, "utf8");
+	if (_aryvn(arJson) == 0)
+		return;
+	dict dAccount = _json2azv(arJson);
 	string sname = dAccount["username"];
 	if (sname != "")
 	{
@@ -429,7 +432,9 @@ TH_UpdateHome()
 //------------------------------------------------------------------------------
 array getJsonTL(string url)
 {
-	array arJson = _httpget(url, "utf8");
+	array arJson = httpget(url, "utf8");
+	if (_aryvn(arJson) == 0)
+		return {};
 	for (int i = 0; i < _aryvn(arJson); i++)
 	{
 		arJson[i] = _strreplace(arJson[i], "\":true", "\":\"true\"");//AKARIで_json2azvするとture/false双方とも0になる
@@ -527,10 +532,11 @@ getIcon(string image_url, string sname)
 {
 	array a = _strsplit(image_url, ".");
 	string extension = "." + a[_aryvn(a) - 1];
-	string tmpPath = _abspath("icon\tmp" + extension);
+	string tmpRelativePath = "icon\tmp" + extension;
+	string tmpPath = _abspath(tmpRelativePath);
 	string pathAfter = _abspath("icon\icon_" + sname + ".png");
 	_sleep(0.125);
-	_http_download(image_url, tmpPath);
+	http_download(image_url, tmpRelativePath);
 	if (isImageFile(tmpPath))
 	{
 		resizeImage(tmpPath, pathAfter, 16, 16);
@@ -548,10 +554,11 @@ getEmoji(string image_url, string strEmoji)
 {
 	array a = _strsplit(image_url, ".");
 	string extension = "." + a[_aryvn(a) - 1];
-	string tmpPath = _abspath("icon\tmp" + extension);
+	string tmpRelativePath = "icon\tmp" + extension;
+	string tmpPath = _abspath(tmpRelativePath);
 	string pathAfter = _abspath("icon\emoji_" + strEmoji + ".png");
 	_sleep(0.125);
-	_http_download(image_url, tmpPath);
+	http_download(image_url, tmpRelativePath);
 	int hasAlpha = 0;
 	if (isImageFile(tmpPath))
 	{
@@ -581,10 +588,11 @@ string getImage(string image_url)
 	string extension = "." + a[_aryvn(a) - 1];
 	array a2 = _strsplit(a[_aryvn(a) - 2], "/");
 	string name = a2[_aryvn(a2) - 1];
-	string tmpPath = _abspath("icon\tmp" + extension);
+	string tmpRelativePath = "icon\tmp" + extension;
+	string tmpPath = _abspath(tmpRelativePath);
 	string pathAfter = _abspath("icon\image_" + name + ".png");
 	_sleep(0.125);
-	_http_download(image_url, tmpPath);
+	http_download(image_url, tmpRelativePath);
 	if (isImageFile(tmpPath))
 	{
 		resizeImage(tmpPath, pathAfter, 64, 64);
