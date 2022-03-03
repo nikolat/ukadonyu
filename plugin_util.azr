@@ -349,22 +349,9 @@ string JOIN(array a, string delim)
 //------------------------------------------------------------------------------
 int getBalloonWidth(string strHwnd)
 {
-	int width = -1;
 	if (strHwnd == "")
 		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
-	// プロパティシステムにアクセス
-	dict d = _saorirequest(
-		"HandUtil"
-		,"DSSTPSend"
-		,strHwnd
-		,"result"
-		,"EXECUTE SSTP/1.1"
-		,"Charset: Shift_JIS"
-		,"Sender: HandUtil"
-		,"Command: GetProperty[currentghost.balloon.scope(0).validwidth]"
-	);
-	if (_strstr(d["Value0"], "SSTP/1.1 200") >= 0)
-		width = d["Value1"];
+	int width = (int)_saorirequest("yaya", "DSSTP.GetBalloonWidth", strHwnd)["Result"];
 	return width;
 }
 //------------------------------------------------------------------------------
@@ -380,20 +367,8 @@ speakBySSTP(string script, string strHwnd, string strOwnedSSTPid)
 		strHwnd = hwnd;	// グローバル変数：PLUGIN実行者hwnd
 	if (strOwnedSSTPid == "")
 		strOwnedSSTPid = ownedSSTPid;	// グローバル変数：PLUGIN実行者ID
-	// SakuraScriptの再生
-	dict d = _saorirequest(
-		"HandUtil"
-		,"DSSTPSend"
-		,strHwnd
-		,"result"
-		,"NOTIFY SSTP/1.1"
-		,"Charset: Shift_JIS"
-		,"Sender: HandUtil"
-		,"Event: On" + pluginnameen() + "SSTP"
-		,"Script: " + script
-		,"Option: notranslate"
-		,"ID: " + strOwnedSSTPid
-	);
+	string event = "On" + pluginnameen() + "SSTP";
+	dict d = _saorirequest("yaya", "DSSTP.SpeakBySSTP", script, strHwnd, strOwnedSSTPid, event);
 }
 //------------------------------------------------------------------------------
 // 関数名：httpget

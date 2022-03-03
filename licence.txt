@@ -20,6 +20,10 @@
     satoriya-shiori
       https://github.com/ponapalt/satoriya-shiori
 
+  yaya.dll
+    yaya-shiori
+      https://github.com/ponapalt/yaya-shiori
+
   imgctl.dll
     ルーチェ's Homepage
       http://www.ruche-home.net/

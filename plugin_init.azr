@@ -43,7 +43,9 @@ TH_LoadPlugin()
 	string s = setTimerraise();
 	if (s != "")
 	{
-		speakBySSTP("\C" + s + "\e");
+		// 初回呼び出しは文字コードが正しく認識されない & logに記録されない (YAYAのバグ?)
+		dict d = _saorirequest("yaya", "DSSTP.SendDummyRequestToYAYA");
+		speakBySSTP("\C" + s + "\e", hwnd, ownedSSTPid);
 		_sleep(1);
 	}
 	// 認証

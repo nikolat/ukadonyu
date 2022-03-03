@@ -1,0 +1,257 @@
+//******************************************************************************
+//DirectSSTP送信関数
+//******************************************************************************
+//DirectSSTPでバルーンサイズを取得する
+DSSTP.GetBalloonWidth
+{
+	_hwnd = REQ.ARGS[0]
+	void FUNCTIONEX('..\HandUtil\HandUtil.dll'/
+		,'DSSTPSend'/
+		,_hwnd/
+		,'result'/
+		,'EXECUTE SSTP/1.1'/
+		,'Charset: UTF-8'/
+		,'Sender: HandUtil'/
+		,'Command: GetProperty[currentghost.balloon.scope(0).validwidth]'/
+		)
+	if 'SSTP/1.1 200' !_in_ valueex[0]
+		RES.RESULT = '-1'
+	else
+		RES.RESULT = TOSTR(valueex[1])
+}
+
+//DirectSSTPでSakuraScriptを実行する
+DSSTP.SpeakBySSTP
+{
+	_script = REQ.ARGS[0]
+	_hwnd = REQ.ARGS[1]
+	_ownedSSTPid = REQ.ARGS[2]
+	_event = REQ.ARGS[3]
+	void FUNCTIONEX('..\HandUtil\HandUtil.dll'/
+		,'DSSTPSend'/
+		,_hwnd/
+		,'result'/
+		,'NOTIFY SSTP/1.1'/
+		,'Charset: UTF-8'/
+		,'Sender: HandUtil'/
+		,"Event: %(_event)"/
+		,"Script: %(_script)"/
+		,'Option: notranslate'/
+		,"ID: %(_ownedSSTPid)"/
+		)
+}
+
+//******************************************************************************
+//初期化/後始末
+//******************************************************************************
+DSSTP.Load
+{
+	SAORI.DllList = IARRAY()
+	C_CRLF2 = CHR(0xd,0xa,0xd,0xa)
+	C_CRLF = CHR(0xd,0xa)
+}
+
+DSSTP.Unload
+{
+	SHIORI3FW.ClearValueexVariable()
+	SHIORI3FW.SaoriUnloadAll()
+	// 保存する必要のない変数を削除
+	_var = <<'
+LIB.PROTOCOL
+LIB.STATUSCODE
+var.lib.key
+var.lib.value
+var.lib.result
+SAORI.DllList
+C_CRLF2
+C_CRLF
+'>>
+	ERASEVAR(SPLIT(_var,C_CRLF))
+}
+
+//******************************************************************************
+//文 version 3 システム関数 / システム変数の補完
+//FUNCTIONEX / SAORI
+//******************************************************************************
+//------------------------------------------------------------------------------
+//関数名：FUNCTIONLOAD
+//機能　：SAORIを読み込みます
+//引数　：_argv[0]　 対象DLL名
+//------------------------------------------------------------------------------
+FUNCTIONLOAD
+{
+	// load　エラーなら抜ける　初回のloadならGET Versionを送出する
+	_r_load = LOADLIB(_argv[0])
+	if !_r_load {
+		0
+		return
+	}
+	if _r_load == 1 {
+		if SUBSTR(SHIORI3FW.SendGETVersion(_argv[0]), 0, 1) != '2' {
+			UNLOADLIB(_argv[0])
+			0
+			return
+		}
+		SAORI.DllList ,= _argv[0]
+	}
+	1
+}
+
+//------------------------------------------------------------------------------
+//関数名：FUNCTIONEX
+//機能　：SAORIを実行します
+//引数　：_argv[0]　 対象DLL名
+//　　　　_argv[1]～ Argument0～
+//------------------------------------------------------------------------------
+FUNCTIONEX
+{
+	if FUNCTIONLOAD(_argv[0]) == 0 {
+		0
+		return
+	}
+
+	// リクエスト文字列を作成
+	_reqheader = /
+		"EXECUTE SAORI/1.0%(C_CRLF)Charset: %(CHARSETLIBEX(_argv[0]))%(C_CRLF)Sender: AYA%(C_CRLF)SecurityLevel: Local%(C_CRLF)"
+	for _i = 1; _i < _argc; _i++ {
+		_reqheader += "Argument%(_i - 1): %(_argv[_i])%(C_CRLF)"
+	}
+	_reqheader += C_CRLF
+
+	// 実行
+	SHIORI3FW.RequestLib(_argv[0], _reqheader)
+
+	if var.lib.result != ''
+		var.lib.result
+	SHIORI3FW.MakeValueexVariable()
+}
+
+//------------------------------------------------------------------------------
+//関数名：SAORI
+//機能　：SAORIを実行します
+//        FUNCTIONEXのシノニム。一段下駄が入る分FUNCTIONEXより低速になりますが、
+//        気にするほどではありません。
+//------------------------------------------------------------------------------
+SAORI { FUNCTIONEX(_argv) }
+
+//------------------------------------------------------------------------------
+//関数名：SHIORI3FW.SendGETVersion
+//機能　：SAORIへGET Versionを送出します
+//引数　：_argv[0] SAORIファイル名
+//------------------------------------------------------------------------------
+SHIORI3FW.SendGETVersion
+{
+	SHIORI3FW.RequestLib(_argv[0], "GET Version SAORI/1.0%(C_CRLF)Charset: %(CHARSETLIBEX(_argv[0]))%(C_CRLF)Sender: AYA%(C_CRLF2)")
+
+	LIB.STATUSCODE
+}
+
+//------------------------------------------------------------------------------
+//関数名：SHIORI3FW.RequestLib
+//機能　：SAORIへリクエストを送出し、結果を得ます
+//引数　：_argv[0] SAORIファイル名
+//　　　　_argv[1] リクエスト文字列
+//------------------------------------------------------------------------------
+SHIORI3FW.RequestLib
+{
+	LIB.PROTOCOL   = ''
+	LIB.STATUSCODE = ''
+
+	// リクエスト送出
+	_result = REQUESTLIB(_argv[0], _argv[1])
+
+	// 結果の解析
+
+	// 改行で分割
+	_lines = RE_SPLIT(_result, C_CRLF)
+
+	// プロトコル名と結果の取得
+	_seppos = STRSTR(_lines[0], ' ', 0)
+	if _seppos == -1; return
+	LIB.PROTOCOL   = SUBSTR(_lines[0], 0, _seppos)
+	LIB.STATUSCODE = SUBSTR(_lines[0], _seppos + 1, STRLEN(_lines[0]) - _seppos - 1)
+
+	// レスポンスヘッダの取得
+	var.lib.key   = IARRAY
+	var.lib.value = IARRAY
+	var.lib.result = ''
+	
+	_skip = 1
+	foreach _lines; _lin {
+		// 1行目は飛ばす
+		if _skip {
+			_skip = 0
+			continue
+		}
+
+		// キーと値を取得
+		_len         = STRLEN(_lin)
+		_pos         = STRSTR(_lin, ': ', 0)
+		var.lib.key ,= (_key = SUBSTR(_lin, 0, _pos))
+		_value       = SUBSTR(_lin, _pos + 2, _len - _pos - 2)
+		_valuecv     = ''
+		
+		if var.lib.key == '' {
+			break
+		}
+
+		_valuecv = TOAUTOEX(_value)
+		
+		var.lib.value ,= _valuecv
+		if _key == 'Result' {
+			var.lib.result = _valuecv
+		}
+	}
+}
+
+TOAUTOEX
+{
+	_v = _argv[0]
+	if TOSTR(TOAUTO(_v)) == _v {
+		TOAUTO(_v)
+		return
+	}
+	_v
+}
+
+//------------------------------------------------------------------------------
+//関数名：SHIORI3FW.MakeValueexVariable
+//機能　：リクエストヘッダからvalueex*変数を作成します
+//引数　：_argv[0] SAORIファイル名
+//　　　　_argv[1] リクエスト文字列
+//------------------------------------------------------------------------------
+SHIORI3FW.MakeValueexVariable
+{
+	SHIORI3FW.ValueexList = IARRAY
+	_sz                   = ARRAYSIZE(var.lib.key)
+	for _i = 0; _i < _sz; _i++ {
+		if SUBSTR(_keyname = var.lib.key[_i], 0, 5) == "Value" {
+			_varname = "valueex%(SUBSTR(_keyname, 5, 3))"
+			LETTONAME(_varname, var.lib.value[_i])
+			SHIORI3FW.ValueexList ,= _varname
+			valueex[TOINT(SUBSTR(_keyname, 5, 3))] = var.lib.value[_i]
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+//関数名：SHIORI3FW.ClearValueexVariable
+//機能　：valueex*変数を削除します
+//------------------------------------------------------------------------------
+SHIORI3FW.ClearValueexVariable
+{
+	foreach SHIORI3FW.ValueexList; _exname { ERASEVAR(_exname) }
+	ERASEVAR('SHIORI3FW.ValueexList')
+	ERASEVAR('valueex')
+}
+
+//------------------------------------------------------------------------------
+//関数名：SHIORI3FW.SaoriUnloadAll
+//機能　：ロードされているSAORIをすべてunloadします
+//------------------------------------------------------------------------------
+SHIORI3FW.SaoriUnloadAll
+{
+	foreach SAORI.DllList; _saori { UNLOADLIB(_saori) }
+
+	SAORI.DllList = IARRAY
+}
