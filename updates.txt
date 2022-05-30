@@ -1,6 +1,6 @@
 charset,UTF-8
 file,akari.dll604e9d9fa66b8ad367d22ccd682a74e4size=889856date=2012-12-21T00:00:00
-file,delete.txt5ed34a6b1466b882a058ff7f89bbf742size=48date=2012-12-21T00:00:00
+file,delete.txt65925456d1c409758bfabcb75991ceb8size=275date=2012-12-21T00:00:00
 file,descript.txtc2523439d97fc6192d8853080ee7dbd8size=280date=2012-12-21T00:00:00
 file,icon/icon.txt1b0eff17e4ae32d04086f17df7c4c6bdsize=46date=2012-12-21T00:00:00
 file,image/default.pnga21d963fe55b69824152bfae32913c6dsize=576date=2012-12-21T00:00:00
@@ -37,13 +37,8 @@ file,saori/imgctl_saori/imgctl_saori_readme.txta0f78bddbe969f66edb4efac488f6aeb
 file,saori/textcopy2/textcopy2.dllbd1f30d37cc40659391fbecf947863bbsize=50176date=2012-12-21T00:00:00
 file,saori/textcopy2/textcopy2_license.txt493b92cbc7d88de5bce3e5371e749a85size=2165date=2012-12-21T00:00:00
 file,saori/textcopy2/textcopy2_readme.txta8ea92941e059484b548da95843f1464size=639date=2012-12-21T00:00:00
-file,saori/yaya/ayasaori.aymc486d759a906ec0ee9c6bef3f26ebb3asize=5548date=2012-12-21T00:00:00
+file,saori/yaya/ayasaori.aym48e5aee41e7c1d34d8775db5253da480size=5554date=2012-12-21T00:00:00
 file,saori/yaya/dsstp.aymcfa6558fbfe17bed3876657044060577size=7144date=2012-12-21T00:00:00
-file,saori/yaya/messagetxt/classical-chinese.txt10f4b85eff273e9179ee86df61a3ad64size=5252date=2012-12-21T00:00:00
-file,saori/yaya/messagetxt/english.txtae0885393f76b7c35cc094f43fd6fafesize=7379date=2012-12-21T00:00:00
-file,saori/yaya/messagetxt/japanese.txtc1dee8bf729ac413cb94a374b3253868size=9497date=2012-12-21T00:00:00
-file,saori/yaya/messagetxt/simplified-chinese.txtf2bfaeb9d9d4f2cf764c71fbbeff3ca2size=6724date=2012-12-21T00:00:00
-file,saori/yaya/messagetxt/traditional-chinese.txt3c19fa6d88957961a5e7bccc700512c3size=6710date=2012-12-21T00:00:00
-file,saori/yaya/yaya.dll1e03259fee875aa9553527400bc2aa44size=798720date=2012-12-21T00:00:00
+file,saori/yaya/yaya.dll8b942fa13ee4f4e2892348edde12964fsize=872448date=2012-12-21T00:00:00
 file,saori/yaya/yaya.txte06e05316bf1288ceac43d7c2bf4ebcfsize=1700date=2012-12-21T00:00:00
 file,saori/yaya/yaya_readme.txt3efc5e23d39cdd8961f3a668ed0e1276size=2399date=2012-12-21T00:00:00
