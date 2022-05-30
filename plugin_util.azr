@@ -225,6 +225,7 @@ string convertHtml(string s)
 	s = _strreplace(s, "&lt;"  , "<");
 	s = _strreplace(s, "&gt;"  , ">");
 	s = _strreplace(s, "&apos;", "'");
+	s = _strreplace(s, "&#39;" , "'");
 	s = _strreplace(s, "&quot;", "\"");
 	s = _strreplace(s, "&#92;" , "\\");
 	s = _strreplace(s, "&amp;" , "&");
