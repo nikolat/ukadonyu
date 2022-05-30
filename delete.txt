@@ -1,2 +1,8 @@
 image\fam_group_edit.png
 image\fam_group_go.png
+saori\yaya\messagetxt\classical-chinese.txt
+saori\yaya\messagetxt\english.txt
+saori\yaya\messagetxt\japanese.txt
+saori\yaya\messagetxt\simplified-chinese.txt
+saori\yaya\messagetxt\traditional-chinese.txt
+saori\yaya\messagetxt\
