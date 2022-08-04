@@ -938,7 +938,7 @@ string showViewPost(string title, string name, string post, string sname, string
 		s += "\n\_l[20,]Boost this post ? \__q[BoostPost," + postid + "] Y \__q / \__q[ViewPost," + title + "," + escapeText(name) + "," + escapeText(post) + "," + sname + "," + postid + "," + posturl + "," + isfavorited + ",0,0,0," + images_arg + "] N \__q"
 		   + "\n\n[half]\f[color,#888]" + escapedPost + "\f[color,default]";
 	} else if (isreply) {
-		s += "\n\_l[20,]<< \f[bold,true]Reply 140 charactors.\f[bold,false] >>"
+		s += "\n\_l[20,]<< \f[bold,true]Reply 9801 charactors.\f[bold,false] >>"
 		   + "\n\n[half]\f[color,#888]" + escapedPost + "\f[color,default]";
 	} else {
 		s += "\n" + escapedPost;
@@ -1135,14 +1135,14 @@ string OpenPostBar(dict ref)
 		path = dIconPath[selfScreenName];
 	string s;
 	s += closeAllInputBox();
-	s += "\![open,inputbox,Post,0,--limit=140";
+	s += "\![open,inputbox,Post,0,--limit=9801";
 	if (sname != "")
 		s += ",--text=@" + sname + " ";
 	s += "]";
 	if (sname == "")
 	{
 		s += "\_l[0,0]\n\n[half]\_b[" + path + ",inline,--option=opaque,--clipping=0 0 16 16]";
-		s += " << \f[bold,true]Toot 140 charactors.\f[bold,false] >>";
+		s += " << \f[bold,true]Toot 9801 charactors.\f[bold,false] >>";
 	}
 	string title = ref["Reference2"];
 	if (title == "")
