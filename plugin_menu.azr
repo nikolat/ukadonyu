@@ -40,8 +40,8 @@ TH_InitPlugin()
 {
 	_sleep(0.25);	// \b[2]を表示しきってからサイズの取得に移る
 	balloonWidth = getBalloonWidth();
-	if (balloonWidth < 100)
-		balloonWidth = 100;
+	if (balloonWidth < BALLOON_WIDTH_MIN)
+		balloonWidth = BALLOON_WIDTH_MIN;
 	// 自身の名前・アイコンを取得
 	if (selfScreenName == "")
 		TH_VerifyAccount();
@@ -101,7 +101,7 @@ TH_VerifyAccount()
 //------------------------------------------------------------------------------
 string showBottunSet(int width)
 {
-	if (width < 100)
+	if (width < BALLOON_WIDTH_MIN)
 		width = balloonWidth;
 	int ofs = width - 16;
 
@@ -327,9 +327,12 @@ clearLog()
 	arHome = {};
 	arMentions = {};
 	arLikes = {};
+	arLocalTimeline = {};
 	sHome = "";
 	sMentions = "";
 	sLikes = "";
+	sMessages = "";
+	sLocalTimeline = "";
 	dIconPath = ${};
 	selfName = "";
 	selfScreenName = "";
@@ -699,17 +702,26 @@ string showLocalTL()
 //------------------------------------------------------------------------------
 string showTL(string title, array arTL)
 {
-	// キャッシュがあればそれを返す
-	if ((title == "home") && (sHome != ""))
-		return sHome;
-	if ((title == "notifications") && (sMentions != ""))
-		return sMentions;
-	if ((title == "favourites") && (sLikes != ""))
-		return sLikes;
-	if ((title == "conversations") && (sMessages != ""))
-		return sMessages;
-	if ((title == "local") && (sLocalTimeline != ""))
-		return sLocalTimeline;
+	if (sender_saved == sender && balloonWidth > BALLOON_WIDTH_MIN) {
+		// キャッシュがあればそれを返す
+		if ((title == "home") && (sHome != ""))
+			return sHome;
+		if ((title == "notifications") && (sMentions != ""))
+			return sMentions;
+		if ((title == "favourites") && (sLikes != ""))
+			return sLikes;
+		if ((title == "conversations") && (sMessages != ""))
+			return sMessages;
+		if ((title == "local") && (sLocalTimeline != ""))
+			return sLocalTimeline;
+	}
+	else {
+		sHome = "";
+		sMentions = "";
+		sLikes = "";
+		sMessages = "";
+		sLocalTimeline = "";
+	}
 
 	string s;
 	s += showBottunSet(balloonWidth);
@@ -798,6 +810,7 @@ string showTL(string title, array arTL)
 		sMessages = s;
 	else if (title == "local")
 		sLocalTimeline = s;
+	sender_saved = sender;
 
 	return s;
 }
