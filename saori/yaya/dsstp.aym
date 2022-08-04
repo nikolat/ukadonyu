@@ -204,16 +204,6 @@ SHIORI3FW.RequestLib
 	}
 }
 
-TOAUTOEX
-{
-	_v = _argv[0]
-	if TOSTR(TOAUTO(_v)) == _v {
-		TOAUTO(_v)
-		return
-	}
-	_v
-}
-
 //------------------------------------------------------------------------------
 //関数名：SHIORI3FW.MakeValueexVariable
 //機能　：リクエストヘッダからvalueex*変数を作成します
