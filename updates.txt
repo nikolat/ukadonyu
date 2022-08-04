@@ -22,10 +22,10 @@ file,image/fam_wrench.pnga137eb4441860564ce1655357af26de8size=610date=2012-12
 file,install.txt4935b988489697e2f6adc3441da4ef4csize=69date=2012-12-21T00:00:00
 file,licence.txta9a63ab091d6340e6b56892e2bb82b1dsize=2076date=2012-12-21T00:00:00
 file,main.azr885202766f56b1c6e23395fde79580fesize=3310date=2012-12-21T00:00:00
-file,plugin_init.azr7d304c26df75b9c8e2015c1b09352346size=9354date=2012-12-21T00:00:00
+file,plugin_init.azra38ad0f1e38f236271b54a7a987dd2e0size=9354date=2012-12-21T00:00:00
 file,plugin_menu.azr0b27dd0ff175d397586fbd4f5916ee57size=43280date=2012-12-21T00:00:00
 file,plugin_util.azr2eda3921403c9993ef258334c343fb4csize=16043date=2012-12-21T00:00:00
-file,readme.txt298c4e14289b53568f5e9f60d7b5a98asize=4379date=2012-12-21T00:00:00
+file,readme.txt65e3d4bbcf67dfcb0dcb1213da2b9314size=4505date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil.dlld382e237a4b365a302b281664d9e9d36size=38400date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil_readme.txtc6c761a051d6970b022e1aaffe24d11asize=4362date=2012-12-21T00:00:00
 file,saori/httpc/httpc.dlld0930cb53f63ad98e0f59618e8b5ec77size=172032date=2012-12-21T00:00:00
@@ -37,8 +37,8 @@ file,saori/imgctl_saori/imgctl_saori_readme.txta0f78bddbe969f66edb4efac488f6aeb
 file,saori/textcopy2/textcopy2.dllbd1f30d37cc40659391fbecf947863bbsize=50176date=2012-12-21T00:00:00
 file,saori/textcopy2/textcopy2_license.txt493b92cbc7d88de5bce3e5371e749a85size=2165date=2012-12-21T00:00:00
 file,saori/textcopy2/textcopy2_readme.txta8ea92941e059484b548da95843f1464size=639date=2012-12-21T00:00:00
-file,saori/yaya/ayasaori.aym48e5aee41e7c1d34d8775db5253da480size=5554date=2012-12-21T00:00:00
-file,saori/yaya/dsstp.aymcfa6558fbfe17bed3876657044060577size=7144date=2012-12-21T00:00:00
-file,saori/yaya/yaya.dll8b942fa13ee4f4e2892348edde12964fsize=872448date=2012-12-21T00:00:00
+file,saori/yaya/ayasaori.aym138f329773f6c92a4c837ddcd4460f18size=5336date=2012-12-21T00:00:00
+file,saori/yaya/dsstp.aym2f29f00530088d8d8497d8f94415d02fsize=7056date=2012-12-21T00:00:00
+file,saori/yaya/yaya.dll8a0a0c196b76a4a1f12a6e44499351eesize=880640date=2012-12-21T00:00:00
 file,saori/yaya/yaya.txte06e05316bf1288ceac43d7c2bf4ebcfsize=1700date=2012-12-21T00:00:00
 file,saori/yaya/yaya_readme.txt3efc5e23d39cdd8961f3a668ed0e1276size=2399date=2012-12-21T00:00:00
