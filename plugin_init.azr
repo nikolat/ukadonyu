@@ -2,6 +2,7 @@
 // グローバル変数
 //******************************************************************************
 string sender;
+string sender_saved;
 string hwnd;
 string ownedSSTPid;
 string selfName;
@@ -24,6 +25,7 @@ dict dEmojiPathAlpha;
 string postidToReply;
 string reservedScript;
 int isInit;
+int BALLOON_WIDTH_MIN = 100;
 //******************************************************************************
 // プラグイン初期化処理
 //******************************************************************************
@@ -39,6 +41,7 @@ loadPlugin()
 }
 TH_LoadPlugin()
 {
+	sender_saved = sender;
 	// 定期投稿取得タイマセット
 	string s = setTimerraise();
 	if (s != "")
