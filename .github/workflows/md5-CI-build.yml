@@ -13,6 +13,6 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
     - name: updates build
-      uses: Taromati2/ukagaka-mirror-md5-CI-build@v1
+      uses: ukatech/ukagaka-mirror-md5-CI-build@v1
       with:
         build-mode: other
