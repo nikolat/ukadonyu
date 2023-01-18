@@ -100,10 +100,8 @@ string openUpdateMenu()
 	s += "\_l[0,0]■" + pluginnameen() + " update menu\_l[0,30]";
 	s += menuItem("配布ページをブラウザで開く",
 		{"UpdatePlugin", "OpenURL"}, 0);
-	s += menuItem("プラグインエクスプローラを開く",
-		{"UpdatePlugin", "OpenPluginExplorer"}, 100);
-	s += menuItem("NARファイルを直接ダウンロードして上書き更新",
-		{"UpdatePlugin", "DownloadNarFile"}, 100);
+	s += menuItem("ネットワーク更新を実行する",
+		{"UpdatePlugin", "NetworkUpdate"}, 100);
 	s += menuItem("キャンセル",
 		{"Menu_CANCEL"}, 200);
 	s  = "\0\_q" + s + "\_q\e";
@@ -126,11 +124,8 @@ string UpdatePlugin(dict ref)
 	  case "OpenURL":
 		s = "\C\0\_q \_q\![open,browser," + craftmanurl() + "]\e";
 		break;
-	  case "OpenPluginExplorer":
-		s = "\C\0\_q \_q\![open,pluginexplorer]\e";
-		break;
-	  case "DownloadNarFile":
-		s = "\![execute,install,url," + getnarurl() + "]\e";
+	  case "NetworkUpdate":
+		s = "\![updateother,--plugin=" + pluginname() + "]\e";
 		break;
 	  default:
 		break;
