@@ -137,15 +137,6 @@ string UpdatePlugin(dict ref)
 
 	return s;
 }
-string getnarurl()
-{
-	array arJson = httpget(githublatesturl(), "utf8");
-	if (_aryvn(arJson) == 0)
-		return "";
-	dict dRes = _json2azv(arJson);
-	string url = dRes["assets"][0]["browser_download_url"];
-	return url;
-}
 
 //******************************************************************************
 // プラグイン後始末処理
@@ -293,10 +284,6 @@ string getPluginOAuthURL()
 string craftmanurl()
 {
 	return "http://nikolat.starfree.jp/ukadonyu/";
-}
-string githublatesturl()
-{
-	return "https://api.github.com/repos/nikolat/ukadonyu/releases/latest";
 }
 string homeurl()
 {
