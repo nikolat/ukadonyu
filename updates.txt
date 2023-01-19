@@ -25,7 +25,7 @@ file,main.azr885202766f56b1c6e23395fde79580fesize=3310date=2012-12-21T00:00:0
 file,plugin_init.azr68105307d72aac891e24701ae3d3204asize=8813date=2012-12-21T00:00:00
 file,plugin_menu.azr06a74d8f69df1944c27bc5e638ceb960size=43283date=2012-12-21T00:00:00
 file,plugin_util.azr2eda3921403c9993ef258334c343fb4csize=16043date=2012-12-21T00:00:00
-file,readme.txt3048b43e7d153a0e61ec02b004cf644csize=4733date=2012-12-21T00:00:00
+file,readme.txtfef938e3c2d1777f1afacc6d1aad8b18size=5100date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil.dlld382e237a4b365a302b281664d9e9d36size=38400date=2012-12-21T00:00:00
 file,saori/HandUtil/HandUtil_readme.txtc6c761a051d6970b022e1aaffe24d11asize=4362date=2012-12-21T00:00:00
 file,saori/httpc/httpc.dlld0930cb53f63ad98e0f59618e8b5ec77size=172032date=2012-12-21T00:00:00
