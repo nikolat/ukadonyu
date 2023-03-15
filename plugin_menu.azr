@@ -1187,15 +1187,16 @@ string InputPost(dict ref)
 	string postid = postidToReply;
 	postidToReply = "";
 	string server_url = dictSaveData["server_url"];
-	string url = server_url + "api/v1/statuses?access_token=" + dictSaveData["oauth_token"];
+	string url = server_url + "api/v1/statuses";
 	string aid = "MastodonPost";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
-		+ ",--param=status=" + escapeText(post);
-		+ ",--param=visibility=public"
+		+ ",--authorization=Bearer " + dictSaveData["oauth_token"]
+		+ ",--param=status=" + escapeText(post)
+		+ ",--param=visibility=public";
 	if (postid != "")
 		s += ",--param=in_reply_to_id=" + postid;
 	s += "]\e";
@@ -1215,13 +1216,14 @@ string BoostPost(dict ref)
 {
 	string postid = ref["Reference2"];
 	string server_url = dictSaveData["server_url"];
-	string url = server_url + "api/v1/statuses/" + postid + "/reblog?access_token=" + dictSaveData["oauth_token"];
+	string url = server_url + "api/v1/statuses/" + postid + "/reblog";
 	string aid = "MastodonPost";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
+		+ ",--authorization=Bearer " + dictSaveData["oauth_token"]
 		+ "]\e";
 
 	dictOptionalHeader["target"] = sender;
@@ -1246,13 +1248,14 @@ string AddStar(dict ref)
 	else
 		command = "unfavourite";
 	string server_url = dictSaveData["server_url"];
-	string url = server_url + "api/v1/statuses/" + postid + "/" + command + "?access_token=" + dictSaveData["oauth_token"];
+	string url = server_url + "api/v1/statuses/" + postid + "/" + command;
 	string aid = "MastodonAddStar";
 	string s = "\![execute,http-post"
 		+ "," + url
 		+ ",--file=update.json"
 		+ ",--async=" + aid
 		+ ",--nodescript"
+		+ ",--authorization=Bearer " + dictSaveData["oauth_token"]
 		+ "]\e";
 
 	dictOptionalHeader["target"] = sender;
