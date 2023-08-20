@@ -390,8 +390,6 @@ TH_GetAllToots()
 {
 	string server_url = dictSaveData["server_url"];
 	string oauth_token = dictSaveData["oauth_token"];
-	_sleep(0.125);
-	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true");
 	if ((server_url == "") || (oauth_token == ""))
 		return;
 	string param = "access_token=" + oauth_token;
@@ -401,6 +399,8 @@ TH_GetAllToots()
 	arHome = getJsonTL(server_url + "api/v1/timelines/home?" + param);
 	_sleep(0.125);
 	arMentions = getJsonTL(server_url + "api/v1/notifications?exclude_types[]=follow&exclude_types[]=favourite&exclude_types[]=reblog&" + param);
+	_sleep(0.125);
+	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true&" + param);
 	_sleep(0.125);
 	arLikes = getJsonTL(server_url + "api/v1/favourites?" + param);
 	sHome = "";
@@ -979,7 +979,7 @@ TH_PopUpTL()
 	_sleep(0.125);
 	arMentionsNext = getJsonTL(server_url + "api/v1/notifications?exclude_types[]=follow&exclude_types[]=favourite&exclude_types[]=reblog&" + param);
 	_sleep(0.125);
-	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true");
+	arLocalTimeline = getJsonTL(server_url + "api/v1/timelines/public?local=true&" + param);
 	sHome = "";
 	sMentions = "";
 	sLocalTimeline = "";
